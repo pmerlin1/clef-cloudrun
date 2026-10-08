@@ -1,0 +1,20 @@
+FROM ubuntu:24.04 AS kernels
+# Only nvcc, its headers and the exact runtime ABI are needed to build sm_120.
+# Avoid the full PyTorch development image and its unrelated CUDA tools.
+ENV DEBIAN_FRONTEND=noninteractive MAX_JOBS=2 CAUSAL_CONV1D_FORCE_BUILD=TRUE CUDA_HOME=/usr/local/cuda-12.8
+ENV PATH="/opt/venv/bin:${PATH}"
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-venv python3-dev build-essential ca-certificates \
+    && python3 -c "import urllib.request; urllib.request.urlretrieve('https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb', '/tmp/cuda-keyring.deb')" \
+    && dpkg -i /tmp/cuda-keyring.deb && rm /tmp/cuda-keyring.deb \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    cuda-nvcc-12-8 cuda-cudart-dev-12-8 cuda-cccl-12-8 \
+    && rm -rf /var/lib/apt/lists/* && python3 -m venv /opt/venv
+RUN python3 -m pip install --no-cache-dir \
+    --index-url https://download.pytorch.org/whl/cu128 torch==2.11.0+cu128
+COPY build_kernel.py /build_kernel.py
+RUN python3 -m pip install --no-cache-dir ninja==1.13.0 wheel==0.46.3 setuptools==80.9.0 \
+    && python3 /build_kernel.py
+
+FROM scratch
+COPY --from=kernels /wheels /wheels

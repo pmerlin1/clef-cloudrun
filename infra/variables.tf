@@ -1,0 +1,76 @@
+variable "project_id" {
+  description = "Existing Google Cloud project with billing enabled."
+  type        = string
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$", var.project_id))
+    error_message = "Use a valid Google Cloud project ID, not its display name or number."
+  }
+}
+
+variable "region" {
+  description = "Cloud Run GPU region; confirm RTX PRO 6000 availability and quota before deploying."
+  type        = string
+  default     = "us-central1"
+  validation {
+    condition     = can(regex("^[a-z]+-[a-z]+[0-9]+$", var.region))
+    error_message = "Use a Google Cloud region such as us-central1."
+  }
+}
+
+variable "service_name" {
+  description = "Resource prefix; short enough for the runtime and deployer service account IDs."
+  type        = string
+  default     = "clef"
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{0,19}[a-z0-9]$", var.service_name))
+    error_message = "Use 2-21 lowercase letters, digits, or hyphens; start with a letter and end with a letter or digit."
+  }
+}
+
+variable "github_repository" {
+  description = "GitHub OWNER/REPO containing this starter at the repository root."
+  type        = string
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", var.github_repository))
+    error_message = "Use OWNER/REPO."
+  }
+}
+
+variable "github_repository_id" {
+  description = "Immutable numeric repository ID: gh api repos/OWNER/REPO --jq .id."
+  type        = string
+  validation {
+    condition     = can(regex("^[0-9]+$", var.github_repository_id))
+    error_message = "Use the numeric GitHub repository ID."
+  }
+}
+
+variable "github_owner_id" {
+  description = "Immutable numeric owner ID: gh api repos/OWNER/REPO --jq .owner.id."
+  type        = string
+  validation {
+    condition     = can(regex("^[0-9]+$", var.github_owner_id))
+    error_message = "Use the numeric GitHub repository owner ID."
+  }
+}
+
+variable "invoker_members" {
+  description = "Explicit IAM members allowed to call Clef, e.g. user:you@example.com. No public principals."
+  type        = set(string)
+  validation {
+    condition = length(var.invoker_members) > 0 && alltrue([
+      for member in var.invoker_members : can(regex("^(user|group|serviceAccount):[^[:space:]]+@[^[:space:]]+$", member))
+    ])
+    error_message = "Provide at least one explicit user:, group:, or serviceAccount: email. Public and domain-wide principals are not accepted."
+  }
+}
+
+variable "subnet_cidr" {
+  description = "Dedicated Direct VPC subnet; /26 provides headroom for Cloud Run address retention across revisions."
+  type        = string
+  default     = "10.88.0.0/26"
+  validation {
+    condition     = can(cidrhost(var.subnet_cidr, 1)) && can(regex("^[0-9.]+/26$", var.subnet_cidr))
+    error_message = "Use an IPv4 /26 subnet."
+  }
+}

@@ -1,0 +1,92 @@
+"""Pinned local weights with separately measured transfer and SHA-256 phases."""
+from concurrent.futures import ThreadPoolExecutor
+import hashlib
+import json
+import os
+from pathlib import Path
+import time
+
+from google.cloud import storage
+from google.cloud.storage import transfer_manager
+from requests.adapters import HTTPAdapter
+
+FILE_WORKERS = 4
+CANDIDATES = (8, 12, 16, 20)
+
+
+def bucket():
+    client = storage.Client(project=os.environ["GOOGLE_CLOUD_PROJECT"])
+    client._http.mount("https://", HTTPAdapter(pool_connections=32, pool_maxsize=32))
+    return client.bucket(os.environ["MODEL_BUCKET"])
+
+
+def manifest():
+    return json.loads(Path(__file__).with_name("manifest.json").read_text())
+
+
+def worker_budget():
+    workers = int(os.environ.get("MODEL_DOWNLOAD_WORKERS", "20"))
+    if workers not in CANDIDATES:
+        raise ValueError("MODEL_DOWNLOAD_WORKERS must be 8, 12, 16, or 20")
+    return workers
+
+
+def download_set(model_bucket, entries, destination, total_workers):
+    if total_workers not in CANDIDATES:
+        raise ValueError("Unsupported worker budget")
+    started = time.monotonic()
+    revision = os.environ["MODEL_REVISION"]
+
+    def download(entry):
+        began = time.monotonic()
+        blob = model_bucket.get_blob(f"{revision}/{entry['name']}", timeout=120)
+        if blob is None or blob.size != entry["size"] or (blob.metadata or {}).get("sha256") != entry["sha256"]:
+            raise RuntimeError(f"Model object mismatch: {entry['name']}")
+        path = destination / entry["name"]
+        if blob.size > 64 * 1024 * 1024:
+            transfer_manager.download_chunks_concurrently(
+                blob, str(path), max_workers=total_workers // FILE_WORKERS,
+                worker_type=transfer_manager.THREAD, deadline=600,
+                download_kwargs={"if_generation_match": blob.generation, "timeout": 120},
+            )
+        else:
+            blob.download_to_filename(str(path), if_generation_match=blob.generation, timeout=120)
+        return {"name": entry["name"], "transfer_seconds": round(time.monotonic() - began, 3)}
+
+    with ThreadPoolExecutor(max_workers=FILE_WORKERS) as pool:
+        files = list(pool.map(download, entries))
+    transfer_seconds = time.monotonic() - started
+    checksum_started = time.monotonic()
+
+    def verify(entry):
+        began = time.monotonic()
+        path = destination / entry["name"]
+        digest = hashlib.sha256()
+        with path.open("rb") as source:
+            while chunk := source.read(8 * 1024 * 1024):
+                digest.update(chunk)
+        if path.stat().st_size != entry["size"] or digest.hexdigest() != entry["sha256"]:
+            raise RuntimeError(f"Model checksum mismatch: {entry['name']}")
+        return round(time.monotonic() - began, 3)
+
+    with ThreadPoolExecutor(max_workers=FILE_WORKERS) as pool:
+        checksums = list(pool.map(verify, entries))
+    for file, seconds in zip(files, checksums):
+        file["checksum_seconds"] = seconds
+    result = {
+        "total_workers": total_workers, "file_workers": FILE_WORKERS,
+        "bytes": sum(e["size"] for e in entries),
+        "transfer_seconds": round(transfer_seconds, 3),
+        "checksum_seconds": round(time.monotonic() - checksum_started, 3),
+        "elapsed_seconds": round(time.monotonic() - started, 3), "files": files,
+    }
+    print("Clef model transfer: " + json.dumps(result, sort_keys=True), flush=True)
+    return result
+
+
+def preload():
+    destination = Path("/tmp/clef-model")
+    destination.mkdir(exist_ok=True)
+    model_bucket = bucket()
+    download_set(model_bucket, manifest(), destination, worker_budget())
+    return str(destination)

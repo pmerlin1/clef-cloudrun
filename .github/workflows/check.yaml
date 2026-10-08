@@ -1,0 +1,30 @@
+name: Check starter (no cloud access)
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - name: Python checks
+        env:
+          PROJECT: example-clef-project
+        run: |
+          python3 -m pip install --disable-pip-version-check pillow==12.3.0
+          python3 -m compileall -q runtime scripts
+          python3 -m unittest discover -s runtime -p 'test_*.py'
+          python3 -m pip install --disable-pip-version-check fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
+          python3 scripts/check_adapter.py
+      - name: Terraform checks (no backend or cloud credentials)
+        run: |
+          terraform -chdir=infra fmt -check
+          terraform -chdir=infra init -backend=false -input=false
+          terraform -chdir=infra validate

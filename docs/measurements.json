@@ -1,0 +1,695 @@
+{
+  "date": "2026-10-07",
+  "model_revision": "2f3de3dd85f379784083b0814d997ab627200f0c",
+  "comparison": "One bounded pass over the same four largest shards per worker budget; not a statistical confidence estimate.",
+  "startup": {
+    "bytes": 54989882273,
+    "checksum_seconds": 8.538,
+    "elapsed_seconds": 229.552,
+    "file_workers": 4,
+    "files": [
+      {
+        "checksum_seconds": 0.001,
+        "name": "LICENSE",
+        "transfer_seconds": 0.104
+      },
+      {
+        "checksum_seconds": 0.001,
+        "name": "chat_template.jinja",
+        "transfer_seconds": 0.113
+      },
+      {
+        "checksum_seconds": 0.001,
+        "name": "config.json",
+        "transfer_seconds": 0.132
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "generation_config.json",
+        "transfer_seconds": 0.098
+      },
+      {
+        "checksum_seconds": 0.162,
+        "name": "joint_head.safetensors",
+        "transfer_seconds": 4.551
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "joint_head_config.json",
+        "transfer_seconds": 0.089
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "joint_schema_model.py",
+        "transfer_seconds": 0.069
+      },
+      {
+        "checksum_seconds": 1.488,
+        "name": "model-00001-of-00012.safetensors",
+        "transfer_seconds": 43.085
+      },
+      {
+        "checksum_seconds": 2.8,
+        "name": "model-00002-of-00012.safetensors",
+        "transfer_seconds": 77.741
+      },
+      {
+        "checksum_seconds": 2.889,
+        "name": "model-00003-of-00012.safetensors",
+        "transfer_seconds": 79.719
+      },
+      {
+        "checksum_seconds": 2.855,
+        "name": "model-00004-of-00012.safetensors",
+        "transfer_seconds": 79.413
+      },
+      {
+        "checksum_seconds": 2.856,
+        "name": "model-00005-of-00012.safetensors",
+        "transfer_seconds": 77.925
+      },
+      {
+        "checksum_seconds": 2.808,
+        "name": "model-00006-of-00012.safetensors",
+        "transfer_seconds": 89.147
+      },
+      {
+        "checksum_seconds": 2.823,
+        "name": "model-00007-of-00012.safetensors",
+        "transfer_seconds": 75.265
+      },
+      {
+        "checksum_seconds": 2.861,
+        "name": "model-00008-of-00012.safetensors",
+        "transfer_seconds": 78.474
+      },
+      {
+        "checksum_seconds": 2.853,
+        "name": "model-00009-of-00012.safetensors",
+        "transfer_seconds": 76.205
+      },
+      {
+        "checksum_seconds": 2.805,
+        "name": "model-00010-of-00012.safetensors",
+        "transfer_seconds": 63.988
+      },
+      {
+        "checksum_seconds": 2.823,
+        "name": "model-00011-of-00012.safetensors",
+        "transfer_seconds": 58.475
+      },
+      {
+        "checksum_seconds": 1.601,
+        "name": "model-00012-of-00012.safetensors",
+        "transfer_seconds": 47.015
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "model.safetensors.index.json",
+        "transfer_seconds": 0.129
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "processor_config.json",
+        "transfer_seconds": 0.1
+      },
+      {
+        "checksum_seconds": 0.012,
+        "name": "tokenizer.json",
+        "transfer_seconds": 1.099
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "tokenizer_config.json",
+        "transfer_seconds": 0.094
+      }
+    ],
+    "total_workers": 16,
+    "transfer_seconds": 221.014
+  },
+  "runtime": {
+    "warm": {
+      "seconds": 26.775,
+      "response": {
+        "model": "clef",
+        "answers": {
+          "team": {
+            "type": "choice",
+            "choice": "technical",
+            "confidence": 0.9622,
+            "probabilities": {
+              "billing": 0.0378,
+              "technical": 0.9622
+            }
+          },
+          "outage": {
+            "type": "noul",
+            "noul": 0.989
+          }
+        },
+        "usage": {
+          "input_tokens": 216,
+          "output_tokens": 0
+        }
+      }
+    },
+    "steady": {
+      "seconds": 0.243,
+      "response": {
+        "model": "clef",
+        "answers": {
+          "team": {
+            "type": "choice",
+            "choice": "technical",
+            "confidence": 0.9622,
+            "probabilities": {
+              "billing": 0.0378,
+              "technical": 0.9622
+            }
+          },
+          "outage": {
+            "type": "noul",
+            "noul": 0.989
+          }
+        },
+        "usage": {
+          "input_tokens": 216,
+          "output_tokens": 0
+        }
+      }
+    },
+    "billing": {
+      "seconds": 0.211,
+      "response": {
+        "model": "clef",
+        "answers": {
+          "team": {
+            "type": "choice",
+            "choice": "billing",
+            "confidence": 0.9791,
+            "probabilities": {
+              "billing": 0.9791,
+              "technical": 0.0209
+            }
+          },
+          "outage": {
+            "type": "noul",
+            "noul": 0.0055
+          }
+        },
+        "usage": {
+          "input_tokens": 220,
+          "output_tokens": 0
+        }
+      }
+    },
+    "parallel_seconds": 0.777,
+    "parallel": [
+      {
+        "seconds": 0.433,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.6,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.763,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.258,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.775,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.264,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.424,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      },
+      {
+        "seconds": 0.619,
+        "response": {
+          "model": "clef",
+          "answers": {
+            "team": {
+              "type": "choice",
+              "choice": "technical",
+              "confidence": 0.9622,
+              "probabilities": {
+                "billing": 0.0378,
+                "technical": 0.9622
+              }
+            },
+            "outage": {
+              "type": "noul",
+              "noul": 0.989
+            }
+          },
+          "usage": {
+            "input_tokens": 216,
+            "output_tokens": 0
+          }
+        }
+      }
+    ],
+    "downloads": {
+      "seconds": 332.688,
+      "response": {
+        "results": [
+          {
+            "total_workers": 8,
+            "file_workers": 4,
+            "bytes": 19882969096,
+            "transfer_seconds": 78.138,
+            "checksum_seconds": 2.879,
+            "elapsed_seconds": 81.017,
+            "files": [
+              {
+                "name": "model-00005-of-00012.safetensors",
+                "transfer_seconds": 76.714,
+                "checksum_seconds": 2.877
+              },
+              {
+                "name": "model-00008-of-00012.safetensors",
+                "transfer_seconds": 73.676,
+                "checksum_seconds": 2.851
+              },
+              {
+                "name": "model-00011-of-00012.safetensors",
+                "transfer_seconds": 78.135,
+                "checksum_seconds": 2.863
+              },
+              {
+                "name": "model-00003-of-00012.safetensors",
+                "transfer_seconds": 76.512,
+                "checksum_seconds": 2.878
+              }
+            ]
+          },
+          {
+            "total_workers": 12,
+            "file_workers": 4,
+            "bytes": 19882969096,
+            "transfer_seconds": 85.616,
+            "checksum_seconds": 2.967,
+            "elapsed_seconds": 88.583,
+            "files": [
+              {
+                "name": "model-00005-of-00012.safetensors",
+                "transfer_seconds": 85.615,
+                "checksum_seconds": 2.955
+              },
+              {
+                "name": "model-00008-of-00012.safetensors",
+                "transfer_seconds": 72.228,
+                "checksum_seconds": 2.92
+              },
+              {
+                "name": "model-00011-of-00012.safetensors",
+                "transfer_seconds": 68.364,
+                "checksum_seconds": 2.966
+              },
+              {
+                "name": "model-00003-of-00012.safetensors",
+                "transfer_seconds": 72.902,
+                "checksum_seconds": 2.942
+              }
+            ]
+          },
+          {
+            "total_workers": 16,
+            "file_workers": 4,
+            "bytes": 19882969096,
+            "transfer_seconds": 79.049,
+            "checksum_seconds": 2.921,
+            "elapsed_seconds": 81.97,
+            "files": [
+              {
+                "name": "model-00005-of-00012.safetensors",
+                "transfer_seconds": 78.934,
+                "checksum_seconds": 2.92
+              },
+              {
+                "name": "model-00008-of-00012.safetensors",
+                "transfer_seconds": 77.992,
+                "checksum_seconds": 2.916
+              },
+              {
+                "name": "model-00011-of-00012.safetensors",
+                "transfer_seconds": 79.046,
+                "checksum_seconds": 2.906
+              },
+              {
+                "name": "model-00003-of-00012.safetensors",
+                "transfer_seconds": 77.656,
+                "checksum_seconds": 2.913
+              }
+            ]
+          },
+          {
+            "total_workers": 20,
+            "file_workers": 4,
+            "bytes": 19882969096,
+            "transfer_seconds": 73.76,
+            "checksum_seconds": 2.893,
+            "elapsed_seconds": 76.653,
+            "files": [
+              {
+                "name": "model-00005-of-00012.safetensors",
+                "transfer_seconds": 73.318,
+                "checksum_seconds": 2.892
+              },
+              {
+                "name": "model-00008-of-00012.safetensors",
+                "transfer_seconds": 73.379,
+                "checksum_seconds": 2.893
+              },
+              {
+                "name": "model-00011-of-00012.safetensors",
+                "transfer_seconds": 72.805,
+                "checksum_seconds": 2.873
+              },
+              {
+                "name": "model-00003-of-00012.safetensors",
+                "transfer_seconds": 73.755,
+                "checksum_seconds": 2.882
+              }
+            ]
+          }
+        ],
+        "tuning": {
+          "model_revision": "2f3de3dd85f379784083b0814d997ab627200f0c",
+          "total_workers": 20
+        }
+      }
+    }
+  },
+  "final_cold_request": {
+    "started_at": "2026-10-07T09:07:03.561818-07:00",
+    "seconds": 275.987,
+    "revision": "clef-00005-75j",
+    "response": {
+      "model": "clef",
+      "answers": {
+        "team": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 0.9622,
+          "probabilities": {
+            "billing": 0.0378,
+            "technical": 0.9622
+          }
+        },
+        "outage": {
+          "type": "noul",
+          "noul": 0.989
+        }
+      },
+      "usage": {
+        "input_tokens": 216,
+        "output_tokens": 0
+      }
+    }
+  },
+  "final_cold_transfer": {
+    "bytes": 54989882273,
+    "checksum_seconds": 8.712,
+    "elapsed_seconds": 227.054,
+    "file_workers": 4,
+    "files": [
+      {
+        "checksum_seconds": 0.001,
+        "name": "LICENSE",
+        "transfer_seconds": 0.081
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "chat_template.jinja",
+        "transfer_seconds": 0.121
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "config.json",
+        "transfer_seconds": 0.081
+      },
+      {
+        "checksum_seconds": 0.001,
+        "name": "generation_config.json",
+        "transfer_seconds": 0.086
+      },
+      {
+        "checksum_seconds": 0.151,
+        "name": "joint_head.safetensors",
+        "transfer_seconds": 4.711
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "joint_head_config.json",
+        "transfer_seconds": 0.078
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "joint_schema_model.py",
+        "transfer_seconds": 0.073
+      },
+      {
+        "checksum_seconds": 1.482,
+        "name": "model-00001-of-00012.safetensors",
+        "transfer_seconds": 43.148
+      },
+      {
+        "checksum_seconds": 2.808,
+        "name": "model-00002-of-00012.safetensors",
+        "transfer_seconds": 71.862
+      },
+      {
+        "checksum_seconds": 2.864,
+        "name": "model-00003-of-00012.safetensors",
+        "transfer_seconds": 70.223
+      },
+      {
+        "checksum_seconds": 2.842,
+        "name": "model-00004-of-00012.safetensors",
+        "transfer_seconds": 71.873
+      },
+      {
+        "checksum_seconds": 2.94,
+        "name": "model-00005-of-00012.safetensors",
+        "transfer_seconds": 80.148
+      },
+      {
+        "checksum_seconds": 2.953,
+        "name": "model-00006-of-00012.safetensors",
+        "transfer_seconds": 88.425
+      },
+      {
+        "checksum_seconds": 2.968,
+        "name": "model-00007-of-00012.safetensors",
+        "transfer_seconds": 71.283
+      },
+      {
+        "checksum_seconds": 2.94,
+        "name": "model-00008-of-00012.safetensors",
+        "transfer_seconds": 75.173
+      },
+      {
+        "checksum_seconds": 2.92,
+        "name": "model-00009-of-00012.safetensors",
+        "transfer_seconds": 83.099
+      },
+      {
+        "checksum_seconds": 2.881,
+        "name": "model-00010-of-00012.safetensors",
+        "transfer_seconds": 74.244
+      },
+      {
+        "checksum_seconds": 2.877,
+        "name": "model-00011-of-00012.safetensors",
+        "transfer_seconds": 66.503
+      },
+      {
+        "checksum_seconds": 1.646,
+        "name": "model-00012-of-00012.safetensors",
+        "transfer_seconds": 53.283
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "model.safetensors.index.json",
+        "transfer_seconds": 0.089
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "processor_config.json",
+        "transfer_seconds": 0.065
+      },
+      {
+        "checksum_seconds": 0.012,
+        "name": "tokenizer.json",
+        "transfer_seconds": 1.099
+      },
+      {
+        "checksum_seconds": 0.0,
+        "name": "tokenizer_config.json",
+        "transfer_seconds": 0.085
+      }
+    ],
+    "total_workers": 20,
+    "transfer_seconds": 218.342
+  },
+  "estimated_cloud_run_compute_usd": 2.29,
+  "provenance": "Original private deployment measured 2026-10-07; identifiers removed for sharing."
+}

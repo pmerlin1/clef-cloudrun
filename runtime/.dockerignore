@@ -1,0 +1,11 @@
+*
+!Dockerfile
+!Dockerfile.kernels
+!requirements.txt
+!build_kernel.py
+!app.py
+!preload.py
+!fast_path.py
+!request_body.py
+!media.py
+!manifest.json

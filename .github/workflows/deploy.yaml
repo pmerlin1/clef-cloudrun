@@ -1,0 +1,104 @@
+name: Deploy private Clef
+on:
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: Optional existing immutable image URI from this starter's Artifact Registry repository
+        required: false
+        type: string
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: clef-deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PROJECT: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION || 'us-central1' }}
+      SERVICE: ${{ vars.CLEF_SERVICE || 'clef' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate configuration and run CPU checks
+        run: |
+          : "${PROJECT:?Set GCP_PROJECT_ID from the Terraform outputs}"
+          python3 -m pip install --disable-pip-version-check pillow==12.3.0
+          python3 -m unittest discover -s runtime -p 'test_*.py'
+          echo "IMAGE=$REGION-docker.pkg.dev/$PROJECT/$SERVICE/api" >> "$GITHUB_ENV"
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOY_SERVICE_ACCOUNT }}
+          project_id: ${{ env.PROJECT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Resolve existing immutable image before building
+        id: reuse
+        env:
+          EXPLICIT_IMAGE: ${{ inputs.image_digest }}
+        run: |
+          DIGEST="$EXPLICIT_IMAGE"
+          if [[ -z "$DIGEST" ]]; then
+            DIGEST=$(gcloud artifacts docker images describe "$IMAGE:$GITHUB_SHA" \
+              --project="$PROJECT" --format='value(image_summary.fully_qualified_digest)' 2>/dev/null || true)
+          fi
+          if [[ -n "$DIGEST" ]]; then
+            python3 runtime/render_service.py "$DIGEST" >/dev/null
+            gcloud artifacts docker images describe "$DIGEST" --project="$PROJECT" >/dev/null
+          fi
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      - name: Free ephemeral runner disk for CUDA build and model transfer
+        if: steps.reuse.outputs.digest == ''
+        run: |
+          # This job runs only on a dedicated, disposable GitHub-hosted runner.
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/share/swift /usr/lib/jvm /opt/az /usr/local/share/powershell /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: Verify and upload pinned model (no GPU)
+        run: python3 runtime/upload_weights.py
+      - name: Build and push container on the GitHub runner
+        id: image
+        env:
+          PREBUILT_IMAGE: ${{ steps.reuse.outputs.digest }}
+        run: |
+          if [[ -n "$PREBUILT_IMAGE" ]]; then
+            DIGEST="$PREBUILT_IMAGE"
+          else
+            gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+            docker build -f runtime/Dockerfile.kernels --output=type=local,dest=/tmp/clef-kernels runtime
+            # Drop compiler layers before the final image on this disposable runner.
+            docker builder prune --all --force
+            docker build --build-context compiled_wheels=/tmp/clef-kernels -t "$IMAGE:$GITHUB_SHA" runtime
+            docker push "$IMAGE:$GITHUB_SHA"
+            DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_SHA")
+          fi
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      - name: Render release and skip identical runtime configuration
+        id: release
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          python3 runtime/render_service.py "$DIGEST" > /tmp/clef-release.yaml
+          gcloud run services describe "$SERVICE" --project="$PROJECT" --region="$REGION" --format=json > /tmp/current.json
+          echo "needed=$(python3 runtime/render_service.py "$DIGEST" /tmp/current.json)" >> "$GITHUB_OUTPUT"
+      - name: Deploy with Cloud Run action
+        if: steps.release.outputs.needed == 'true'
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          project_id: ${{ env.PROJECT }}
+          region: ${{ env.REGION }}
+          skip_default_labels: true
+          metadata: /tmp/clef-release.yaml
+      - name: Verify IAM and scaling without invoking the API
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          gcloud run services describe "$SERVICE" --project="$PROJECT" --region="$REGION" --format=json > /tmp/service.json
+          gcloud run services get-iam-policy "$SERVICE" --project="$PROJECT" --region="$REGION" --format=json > /tmp/iam.json
+          python3 runtime/verify_service.py /tmp/service.json /tmp/iam.json
+          test "$(python3 runtime/render_service.py "$DIGEST" /tmp/service.json)" = false
+          gcloud run services describe "$SERVICE" --project="$PROJECT" --region="$REGION" --format='value(status.url)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'IAM enforced; min=0/max=1. No inference requests were sent. A changed GPU revision still incurs startup charges.' >> "$GITHUB_STEP_SUMMARY"
