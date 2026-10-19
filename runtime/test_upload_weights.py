@@ -43,6 +43,12 @@ class UploadWeightsTest(unittest.TestCase):
         self.assertIn("--if-generation-match=0", command)
         self.assertIn("--custom-metadata=sha256=" + self.entry["sha256"], command)
         self.assertTrue(run.call_args.kwargs["check"])
+        # The publisher role has no delete permission, so gcloud must not use
+        # parallel composite uploads (they need to delete temporary parts).
+        self.assertEqual(
+            run.call_args.kwargs["env"]["CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED"],
+            "False",
+        )
 
     @patch("upload_weights.subprocess.run")
     @patch("upload_weights.subprocess.check_output", return_value="mock-token")

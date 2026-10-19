@@ -6,6 +6,10 @@ on:
         description: Optional existing immutable image URI from this starter's Artifact Registry repository
         required: false
         type: string
+      model:
+        description: Optional model override (clef or clef-flash); defaults to CLEF_MODEL or clef
+        required: false
+        type: string
 permissions:
   contents: read
   id-token: write
@@ -21,6 +25,7 @@ jobs:
       PROJECT: ${{ vars.GCP_PROJECT_ID }}
       REGION: ${{ vars.GCP_REGION || 'us-central1' }}
       SERVICE: ${{ vars.CLEF_SERVICE || 'clef' }}
+      MODEL: ${{ inputs.model || vars.CLEF_MODEL || 'clef' }}
     steps:
       - uses: actions/checkout@v7
       - name: Validate configuration and run CPU checks

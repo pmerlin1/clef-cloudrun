@@ -23,7 +23,7 @@ url = subprocess.check_output([
     "gcloud", "run", "services", "describe", config["service"],
     f"--project={config['project']}", f"--region={config['region']}", "--format=value(status.url)"], text=True).strip()
 token = subprocess.check_output(["gcloud", "auth", "print-identity-token"], text=True).strip()
-payload = {"model": "clef", "state": "Our checkout is down and orders are blocked.", "questions": {
+payload = {"model": config["model_name"], "state": "Our checkout is down and orders are blocked.", "questions": {
     "team": {"type": "choice", "criteria": {"billing": "Invoices and payments", "technical": "Bugs and outages"}},
     "outage": {"type": "noul", "instructions": "Is a service down?"},
 }}

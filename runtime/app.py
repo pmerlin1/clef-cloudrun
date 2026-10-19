@@ -13,6 +13,7 @@ from request_body import read_bounded_body, RequestTooLarge
 model = processor = infer = None
 fast_path = None
 lock = threading.BoundedSemaphore(2)
+MODEL_NAME = os.environ.get("MODEL", "clef")
 
 
 @asynccontextmanager
@@ -35,7 +36,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/healthz")
 def health():
-    return {"ready": model is not None}
+    return {"ready": model is not None, "model": MODEL_NAME}
 
 
 @app.post("/v1/systemone")
@@ -49,8 +50,8 @@ async def systemone(request: Request):
         payload = json.loads(body)
         if not isinstance(payload, dict):
             raise ValueError("Expected an object")
-        if payload.get("model") != "clef":
-            raise ValueError("model must be clef")
+        if payload.get("model") != MODEL_NAME:
+            raise ValueError(f"model must be {MODEL_NAME}")
         if any(k in payload for k in ("videos", "media_kwargs")):
             raise ValueError("Videos and media overrides are not supported")
         questions = payload.get("questions")

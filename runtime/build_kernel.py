@@ -1,4 +1,4 @@
-"""Build the pinned upstream extension for this service's Blackwell GPU only."""
+"""Build the pinned upstream extension for the supported Cloud Run GPUs."""
 import hashlib
 from pathlib import Path
 import subprocess
@@ -25,8 +25,13 @@ with tempfile.TemporaryDirectory() as directory:
     if text.count(marker) != 1:
         raise RuntimeError("Upstream CUDA build layout changed")
     # Upstream hardcodes every architecture; TORCH_CUDA_ARCH_LIST cannot override
-    # that list. Change only the target list, keeping all kernel code untouched.
-    text = text.replace(marker, '    cc_flag = ["-gencode", "arch=compute_120,code=sm_120"]\n\n' + marker)
+    # that list. Target only Ada L4 (sm_89) and Blackwell RTX PRO 6000
+    # (sm_120), keeping all kernel code untouched.
+    text = text.replace(
+        marker,
+        '    cc_flag = ["-gencode", "arch=compute_89,code=sm_89", '
+        '"-gencode", "arch=compute_120,code=sm_120"]\n\n' + marker,
+    )
     setup.write_text(text)
     subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-cache-dir",
                     "--no-build-isolation", "--no-deps", str(root), "--wheel-dir=/wheels"], check=True)

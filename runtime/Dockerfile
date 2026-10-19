@@ -15,7 +15,7 @@ COPY --from=compiled_wheels /wheels /wheels
 RUN python -m pip install --break-system-packages --no-cache-dir -r requirements.txt \
     && python -m pip install --break-system-packages --no-cache-dir --no-deps /wheels/*.whl \
     && rm -rf /wheels
-COPY app.py preload.py fast_path.py request_body.py media.py manifest.json ./
+COPY app.py preload.py fast_path.py request_body.py media.py models.py models.json manifest.json manifest-flash.json ./
 # CPU-only build gate: importing the CUDA extension catches ABI/linker failures.
 RUN python -c "import app, preload; from fast_path import check_installation; check_installation()"
 ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONUNBUFFERED=1

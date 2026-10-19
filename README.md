@@ -1,21 +1,27 @@
 # Clef on Cloud Run
 
-Self-host Cloudflare's 27B Clef decision model behind Google Cloud IAM, with
-Terraform infrastructure and a manual GitHub Actions deployment. The service
-scales to zero and downloads pinned model files from private regional GCS when
-it starts. This is a bounded text and image adapter for `/v1/systemone`.
+Self-host Cloudflare's Clef decision models behind Google Cloud IAM, with
+Terraform infrastructure and a manual GitHub Actions deployment. Choose the
+27B `clef` model or the 9B `clef-flash` model per service. Each service scales
+to zero and downloads its pinned files from private regional GCS when it starts.
+This is a bounded text and image adapter for `/v1/systemone`.
 
-The original deployment was exercised on an RTX PRO 6000 in `us-central1`,
-including bounded PNG/JPEG requests and negative input tests. This portable
-extraction passes local checks; its new-project IAM/bootstrap workflow has not
-been deployed to a second project. See
-[validation and measurements](docs/VALIDATION.md) for the exact evidence boundary.
+| Model | Cloud Run GPU | Instance shape | Pinned weights |
+|---|---|---|---:|
+| `clef` | RTX PRO 6000 (96 GB) | 20 vCPU / 80 GiB | 55 GB |
+| `clef-flash` | L4 (24 GB) | 8 vCPU / 32 GiB | 19 GB |
+
+The original 27B deployment was exercised on an RTX PRO 6000 in `us-central1`,
+including bounded PNG/JPEG requests and negative input tests. See
+[validation and measurements](docs/VALIDATION.md) for the exact evidence boundary
+for each model and deployment path.
 
 ## What you get
 
 - IAM required, an explicit invoker list, and public access prevention on GCS.
 - Minimum instances **0**, maximum **1**, GPU zonal redundancy disabled.
-- One RTX PRO 6000, **20 vCPU / 80 GiB RAM**, and 96 GB GPU memory.
+- A model-specific GPU shape: RTX PRO 6000 with **20 vCPU / 80 GiB RAM** for
+  `clef`, or L4 with **8 vCPU / 32 GiB RAM** for `clef-flash`.
 - HTTP concurrency **8**, with at most **two** simultaneous model calls.
 - Accelerated FLA and causal-conv1d kernels, with actual kernel-call counters.
 - Pinned model revision, file sizes, SHA-256 checksums, and immutable image releases.
@@ -46,9 +52,9 @@ whose default branch is `main`. Include `.github/` and keep the filename
 Publish this extraction, not the original infrastructure repository or its history.
 
 Use an existing billing-enabled Google Cloud project. Confirm
-[RTX PRO 6000 availability and quota](https://docs.cloud.google.com/run/docs/configuring/services/gpu)
-in your selected region first. This recipe is tailored to that GPU; switching to
-an L4 requires separate model-memory and CUDA-architecture work.
+[GPU availability and quota](https://docs.cloud.google.com/run/docs/configuring/services/gpu)
+for the RTX PRO 6000 (`clef`) or L4 (`clef-flash`) in your selected region first.
+The causal-conv1d wheel targets both Blackwell `sm_120` and Ada `sm_89`.
 
 Install Terraform >=1.5, Python >=3.12, Google Cloud CLI, and GitHub CLI. Run the
 commands below from the new repository root in Linux, macOS, or WSL. The bootstrap
@@ -66,10 +72,13 @@ cp infra/terraform.tfvars.example infra/terraform.tfvars
 ```
 
 Edit `infra/terraform.tfvars` with your project ID, GitHub repository and numeric
-IDs, and invoker identity such as `user:you@example.com`. The IDs prevent a renamed
-or re-created GitHub name from inheriting deployment access. Keep `terraform.tfvars`
-and Terraform state private; they are ignored by Git. Defaults are service `clef`
-and region `us-central1`. Protect `main` and review workflow changes.
+IDs, and invoker identity such as `user:you@example.com`. Set `model_variant` to
+`clef` or `clef-flash`. Keep `service_name` aligned with the deployment you mean
+to operate (for example, `clef-flash` for a separate Flash service). The IDs prevent
+a renamed or re-created GitHub name from inheriting deployment access. Keep
+`terraform.tfvars` and Terraform state private; they are ignored by Git. Defaults
+are service and model `clef` in region `us-central1`. Protect `main` and review
+workflow changes.
 
 ## 2. Bootstrap infrastructure once
 
@@ -100,17 +109,19 @@ a compromised deployment identity.
 gh workflow run deploy.yaml --ref main --repo OWNER/REPOSITORY
 ```
 
-Follow the run in GitHub Actions. The workflow downloads each pinned Hugging Face
-file, verifies SHA-256, uploads to GCS, and releases the temporary file. It needs
-space for the largest shard, not all 55 GB at once. Existing matching objects are
-reused; mismatched objects fail closed. The model's LICENSE is among the files.
+Follow the run in GitHub Actions. Terraform's `CLEF_MODEL` repository variable
+selects the model; a workflow `model` input can override it for that run. The
+workflow downloads each pinned Hugging Face file, verifies SHA-256, uploads to
+GCS, and releases the temporary file. It needs space for the largest shard, not
+all 19 GB (Flash) or 55 GB (27B) at once. Existing matching objects are reused;
+mismatched objects fail closed. The model's LICENSE is among the files.
 
 The GitHub-hosted runner builds the CUDA extension separately, frees its compiler
 cache, then builds and pushes the slim runtime image. Build cleanup is confined
 to this disposable runner. Allow tens of minutes for the first upload/build; do
 not use Cloud Shell's small home directory for the full model. The deployment
-action releases an immutable image digest. Startup downloads the 55 GB model into
-instance memory, checks it, then loads GPU tensors. Startup probes allow 15 minutes.
+action releases an immutable image digest. Startup downloads the selected model
+into instance memory, checks it, then loads GPU tensors. Startup probes allow 15 minutes.
 
 Rerunning the **same commit** reuses its existing image. An identical image digest
 and runtime configuration skips deployment. To reuse an image after documentation
@@ -132,6 +143,7 @@ transitive dependencies mean it is not a byte-for-byte reproducible build.
 export PROJECT=your-project-id
 export REGION=us-central1
 export SERVICE=clef
+export MODEL=clef
 python3 scripts/verify.py
 # Explicit paid request: a cold instance takes several minutes.
 python3 scripts/smoke_test.py --allow-paid-request
@@ -167,7 +179,8 @@ A request body looks like this:
 }
 ```
 
-It returns Clef's typed answers/probabilities, not generated chat text. This wrapper
+Use the deployed variant's name in `model` (`clef` or `clef-flash`). It returns
+typed answers/probabilities, not generated chat text. This wrapper
 accepts JSON up to 64 KiB, with 16 questions and 32 criteria per question.
 It accepts one or two inline PNG/JPEG images encoded as base64 data URLs, each
 16–512 pixels per side and at most 48 KiB decoded. It rejects external image URLs,
@@ -180,11 +193,12 @@ validated here.
 
 ## Cost and stopping a test batch
 
-At the tested `us-central1` list prices on **2026-10-07**, compute is approximately
-**$3.19/hour, or $0.053/minute per running instance**, including GPU, CPU and RAM.
-Startup and idle time are billed. Regional GCS model storage, image storage,
-GitHub Actions, networking, taxes and discounts are separate.
-[Pricing](https://cloud.google.com/run/pricing) can change.
+At the tested `us-central1` list prices on **2026-10-07**, the 27B shape costs
+approximately **$3.19/hour, or $0.053/minute per running instance**, including GPU,
+CPU and RAM. At the same pricing basis, the Flash L4 shape calculates to
+approximately **$1.42/hour, or $0.024/minute**. Startup and idle time are billed.
+Regional GCS model storage, image storage, GitHub Actions, networking, taxes and
+discounts are separate. [Pricing](https://cloud.google.com/run/pricing) can change.
 
 `min=0` enables automatic scale-to-zero. It does not make idle time immediately
 free: Google documents idle GPU retention of up to ten minutes. There is no

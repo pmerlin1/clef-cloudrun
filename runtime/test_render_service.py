@@ -43,6 +43,26 @@ class ReleaseTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 service("example.com/untrusted@sha256:" + "a" * 64)
 
+    def test_flash_uses_l4_shape_and_pinned_revision(self):
+        with patch.dict(os.environ, {"MODEL": "clef-flash", "SERVICE": "clef-flash"}):
+            desired = service("us-central1-docker.pkg.dev/example-project/clef-flash/api@sha256:" + "c" * 64)
+        self.assertEqual(desired["metadata"]["name"], "clef-flash")
+        template_annotations = desired["spec"]["template"]["metadata"]["annotations"]
+        self.assertEqual(template_annotations["run.googleapis.com/gpu-zonal-redundancy-disabled"], "false")
+        spec = desired["spec"]["template"]["spec"]
+        self.assertEqual(spec["nodeSelector"]["run.googleapis.com/accelerator"], "nvidia-l4")
+        self.assertEqual(spec["containers"][0]["resources"]["limits"],
+                         {"cpu": "8", "memory": "32Gi", "nvidia.com/gpu": "1"})
+        env = {e["name"]: e["value"] for e in spec["containers"][0]["env"]}
+        self.assertEqual(env["MODEL"], "clef-flash")
+        self.assertEqual(env["MODEL_REVISION"], "8b2e5fd17c09fd49bc2880b805d5323ec7ff4ff3")
+        self.assertEqual(env["MODEL_BUCKET"], "example-project-clef-flash-weights")
+
+    def test_unknown_model_is_rejected(self):
+        with patch.dict(os.environ, {"MODEL": "unknown-model"}):
+            with self.assertRaisesRegex(ValueError, "MODEL must be one of"):
+                service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "d" * 64)
+
     def test_custom_service_names_every_resource_consistently(self):
         with patch.dict(os.environ, {"SERVICE": "my-clef", "REGION": "europe-west4"}):
             desired = service("europe-west4-docker.pkg.dev/example-project/my-clef/api@sha256:" + "b" * 64)

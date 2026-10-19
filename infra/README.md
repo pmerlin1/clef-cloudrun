@@ -49,8 +49,9 @@ No modules.
 | <a name="input_github_repository"></a> [github\_repository](#input\_github\_repository) | GitHub OWNER/REPO containing this starter at the repository root. | `string` | n/a | yes |
 | <a name="input_github_repository_id"></a> [github\_repository\_id](#input\_github\_repository\_id) | Immutable numeric repository ID: gh api repos/OWNER/REPO --jq .id. | `string` | n/a | yes |
 | <a name="input_invoker_members"></a> [invoker\_members](#input\_invoker\_members) | Explicit IAM members allowed to call Clef, e.g. user:you@example.com. No public principals. | `set(string)` | n/a | yes |
+| <a name="input_model_variant"></a> [model\_variant](#input\_model\_variant) | Pinned Clef model variant whose GPU shape is rendered by the deployment workflow. | `string` | `"clef"` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | Existing Google Cloud project with billing enabled. | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | Cloud Run GPU region; confirm RTX PRO 6000 availability and quota before deploying. | `string` | `"us-central1"` | no |
+| <a name="input_region"></a> [region](#input\_region) | Cloud Run GPU region; confirm availability and quota for the selected model's GPU before deploying. | `string` | `"us-central1"` | no |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Resource prefix; short enough for the runtime and deployer service account IDs. | `string` | `"clef"` | no |
 | <a name="input_subnet_cidr"></a> [subnet\_cidr](#input\_subnet\_cidr) | Dedicated Direct VPC subnet; /26 provides headroom for Cloud Run address retention across revisions. | `string` | `"10.88.0.0/26"` | no |
 

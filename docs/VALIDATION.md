@@ -1,14 +1,20 @@
 # Validation and measured results
 
-Reviewed 2026-10-07. There are two distinct evidence sets:
+Originally reviewed 2026-10-07 and updated with a Flash comparison on
+2026-10-19. There are three distinct evidence sets:
 
 1. **The original private deployment was exercised on a real GPU.** Baseline
    measurements and a later image-capable release were tested on 2026-10-07.
-2. **This extracted starter was checked without deploying to a second project.** All 22
+2. **This extracted starter was checked without deploying to a second project.** All 24
    unit tests, CPU adapter checks (with a fake model and inline PNG), Terraform
    validation and repository hooks pass. Fresh-project provisioning,
    the new restricted GitHub identity and the extracted runtime have not been
    exercised together end to end. That remains the first adopter's deployment check.
+3. **A 2026-10-19 private proving ground compared Clef and Clef-Flash on one
+   frozen audit dataset.** Both ran on the existing RTX PRO 6000 shape because
+   the test project has no L4 Cloud Run quota in either zonal-redundancy mode.
+   This validates Flash model execution and relative warm latency, not L4
+   memory, startup, or production accuracy.
 
 Do not infer production readiness, a latency SLO, model accuracy on natural
 images, or maximum-input capacity from the small tests below.
@@ -112,6 +118,53 @@ optimum. A single pass cannot establish statistical significance. Transfer time
 includes the SDK's integrity checks; the separately reported checksum is SHA-256.
 Sanitized detailed responses and measurements are in [measurements.json](measurements.json).
 
+## 2026-10-19 Clef versus Clef-Flash audit proving ground
+
+Security Command Center was not activated for the test organization, so the
+frozen text dataset came from two live audit sources: eight Google Cloud
+Recommender IAM excess-permission insights and 16 vulnerabilities stratified by
+held-out Trivy severity from a 2,178-finding scan of the live Clef image. Each
+case asked for an urgency score, a disposition choice, and a true-risk
+probability. Vendor severity labels were withheld, while structured facts and,
+for vulnerabilities, CVSS information remained visible. Both models ran on one
+RTX PRO 6000 with 20 vCPU and 80 GiB RAM; Flash used this temporary shape only
+because its intended L4 shape had no quota.
+
+| Aggregate result | Clef 27B | Clef-Flash 9B |
+|---|---:|---:|
+| Successful cases | 24/24 | 24/24 |
+| Warm HTTP p50 / max | 0.211 / 0.316 s | 0.116 / 0.127 s |
+| Spearman: urgency vs held-out severity | 0.499 | 0.048 |
+| Mean urgency, CRITICAL/HIGH/MEDIUM/LOW | 0.43 / 1.41 / 0.76 / 0.38 | 1.51 / 1.74 / 1.50 / 1.85 |
+
+The first 27B request took 314.295 seconds from scale-to-zero. Flash's first
+scoring request took 24.279 seconds to an already-ready revision, consistent
+with first-inference kernel compilation; application startup completed 86
+seconds after startup began during revision creation. These startup figures are
+not directly comparable. Flash logged 24 causal-conv1d and 24 FLA calls and
+19,428,502,016 bytes of peak PyTorch-allocated GPU memory per text request.
+That suggests a text-only fit within a 24 GB L4, but it does not prove total
+reserved memory, image inputs, two-way concurrency, or L4 kernel execution.
+
+Head-to-head disposition agreement was only 6/24, mean absolute urgency
+difference was 0.908 on a 0–3 scale, and urgency-rank correlation was −0.236.
+The 27B was conservative and broadly severity-monotonic apart from the sole
+CRITICAL kernel-headers case. Flash was much more escalatory and weakly
+severity-discriminating on this reference, including two LOW-labeled glibc
+records with high visible CVSS scores. Vendor severity and CVSS can disagree,
+there were no human gold dispositions, and all eight IAM cases were HIGH. The
+result therefore favors the 27B as the more discriminating reference on this
+small set, but it does not establish production accuracy for either model.
+Human adjudication of the divergent cases is required before using Flash as an
+unchallenged inline triage default.
+
+Cloud Quotas showed 3,000 milli-GPU of RTX PRO 6000 allocation without zonal
+redundancy in `us-central1`, but no granted L4 allocation. Increase requests for
+one L4 were denied with and without zonal redundancy in `us-central1`, and
+without redundancy in `europe-west2`. A console or support quota request is
+still required before the rendered L4 shape can be exercised. Both private
+services were manually paused after the batches.
+
 ## Cost interpretation
 
 Using the [published rates](https://cloud.google.com/run/pricing) checked on
@@ -119,7 +172,10 @@ Using the [published rates](https://cloud.google.com/run/pricing) checked on
 
 `20 × $0.000018 + 80 × $0.000002 + $0.00036522 = $0.00088522/second`
 
-That is approximately $0.0531/minute or $3.1868/hour per running instance. A
+That is approximately $0.0531/minute or $3.1868/hour per running instance. On
+the same pricing basis, Flash's intended 8 vCPU / 32 GiB L4 shape calculates to
+$0.0237/minute ($1.4209/hour) without zonal redundancy, or $0.0265/minute
+($1.5882/hour) with it; those are calculations, not measured Flash bills. A
 276-second cold request alone is about $0.24 of compute, followed by any paid
 idle tail. One observed 8m23s idle tail was about $0.45. The original optimization
 pass, including a failed cuDNN candidate, was estimated at $2.29 of Cloud Run

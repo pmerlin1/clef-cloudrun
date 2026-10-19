@@ -10,6 +10,8 @@ from google.cloud import storage
 from google.cloud.storage import transfer_manager
 from requests.adapters import HTTPAdapter
 
+from models import model
+
 FILE_WORKERS = 4
 CANDIDATES = (8, 12, 16, 20)
 
@@ -21,7 +23,11 @@ def bucket():
 
 
 def manifest():
-    return json.loads(Path(__file__).with_name("manifest.json").read_text())
+    selected = model()
+    configured_revision = os.environ.get("MODEL_REVISION")
+    if configured_revision and configured_revision != selected["revision"]:
+        raise RuntimeError("MODEL and MODEL_REVISION select different model releases")
+    return json.loads(Path(__file__).with_name(selected["manifest"]).read_text())
 
 
 def worker_budget():

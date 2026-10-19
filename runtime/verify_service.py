@@ -12,7 +12,7 @@ assert int(annotations.get("run.googleapis.com/minScale", 0)) == 0
 assert int(template.get("autoscaling.knative.dev/minScale", 0)) == 0
 assert int(annotations["run.googleapis.com/maxScale"]) == 1
 assert int(template["autoscaling.knative.dev/maxScale"]) == 1
-assert template["run.googleapis.com/gpu-zonal-redundancy-disabled"] == "true"
+assert template["run.googleapis.com/gpu-zonal-redundancy-disabled"] in ("true", "false")
 for binding in policy.get("bindings", []):
     assert not {"allUsers", "allAuthenticatedUsers"}.intersection(binding.get("members", []))
-print("IAM enforced; service/revision min=0 max=1; GPU redundancy off")
+print("IAM enforced; service/revision min=0 max=1")

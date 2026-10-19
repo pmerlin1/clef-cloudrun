@@ -1,0 +1,20 @@
+{
+  "clef": {
+    "hf_repo": "Cloudflare/clef",
+    "revision": "2f3de3dd85f379784083b0814d997ab627200f0c",
+    "manifest": "manifest.json",
+    "accelerator": "nvidia-rtx-pro-6000",
+    "cpu": "20",
+    "memory": "80Gi",
+    "gpu_zonal_redundancy_disabled": true
+  },
+  "clef-flash": {
+    "hf_repo": "Cloudflare/clef-flash",
+    "revision": "8b2e5fd17c09fd49bc2880b805d5323ec7ff4ff3",
+    "manifest": "manifest-flash.json",
+    "accelerator": "nvidia-l4",
+    "cpu": "8",
+    "memory": "32Gi",
+    "gpu_zonal_redundancy_disabled": false
+  }
+}

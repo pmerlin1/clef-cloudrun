@@ -8,4 +8,7 @@
 !fast_path.py
 !request_body.py
 !media.py
+!models.py
+!models.json
 !manifest.json
+!manifest-flash.json

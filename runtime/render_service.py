@@ -1,4 +1,4 @@
-"""Render the sole GPU revision specification, and detect identical releases."""
+"""Render the selected model's GPU revision specification and detect identical releases."""
 import json
 from copy import deepcopy
 import re
@@ -22,7 +22,7 @@ def service(image):
         "spec": {"template": {"metadata": {"annotations": {
             "autoscaling.knative.dev/minScale": "0", "autoscaling.knative.dev/maxScale": "1",
             "run.googleapis.com/execution-environment": "gen2",
-            "run.googleapis.com/gpu-zonal-redundancy-disabled": "true",
+            "run.googleapis.com/gpu-zonal-redundancy-disabled": str(config["gpu_zonal_redundancy_disabled"]).lower(),
             "run.googleapis.com/cpu-throttling": "false",
             "run.googleapis.com/vpc-access-egress": "all-traffic",
             "run.googleapis.com/network-interfaces": json.dumps([
@@ -30,15 +30,18 @@ def service(image):
         }}, "spec": {
             "containerConcurrency": 8, "timeoutSeconds": 900,
             "serviceAccountName": config["runtime_account"],
-            "nodeSelector": {"run.googleapis.com/accelerator": "nvidia-rtx-pro-6000"},
+            "nodeSelector": {"run.googleapis.com/accelerator": config["accelerator"]},
             "containers": [{
                 "image": image, "ports": [{"containerPort": 8080}],
                 "env": [
                     {"name": "GOOGLE_CLOUD_PROJECT", "value": project},
+                    {"name": "MODEL", "value": config["model_name"]},
                     {"name": "MODEL_BUCKET", "value": config["bucket"]},
-                    {"name": "MODEL_REVISION", "value": "2f3de3dd85f379784083b0814d997ab627200f0c"},
+                    {"name": "MODEL_REVISION", "value": config["model_revision"]},
                 ],
-                "resources": {"limits": {"cpu": "20", "memory": "80Gi", "nvidia.com/gpu": "1"}},
+                "resources": {"limits": {
+                    "cpu": config["cpu"], "memory": config["memory"], "nvidia.com/gpu": "1",
+                }},
                 "startupProbe": {"timeoutSeconds": 1, "periodSeconds": 5, "failureThreshold": 180,
                                  "httpGet": {"path": "/healthz", "port": 8080}},
             }],

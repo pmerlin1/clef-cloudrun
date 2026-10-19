@@ -8,12 +8,22 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "Cloud Run GPU region; confirm RTX PRO 6000 availability and quota before deploying."
+  description = "Cloud Run GPU region; confirm availability and quota for the selected model's GPU before deploying."
   type        = string
   default     = "us-central1"
   validation {
     condition     = can(regex("^[a-z]+-[a-z]+[0-9]+$", var.region))
     error_message = "Use a Google Cloud region such as us-central1."
+  }
+}
+
+variable "model_variant" {
+  description = "Pinned Clef model variant whose GPU shape is rendered by the deployment workflow."
+  type        = string
+  default     = "clef"
+  validation {
+    condition     = contains(["clef", "clef-flash"], var.model_variant)
+    error_message = "Use clef or clef-flash."
   }
 }
 

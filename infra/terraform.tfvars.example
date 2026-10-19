@@ -5,6 +5,8 @@ github_repository_id = "123456789"
 github_owner_id      = "12345678"
 invoker_members      = ["user:you@example.com"]
 
-# Confirm RTX PRO 6000 availability and quota for this region before deploying.
-region       = "us-central1"
-service_name = "clef"
+# Confirm GPU availability and quota for this region before deploying:
+# clef uses RTX PRO 6000; clef-flash uses L4.
+region        = "us-central1"
+service_name  = "clef"
+model_variant = "clef"

@@ -4,6 +4,7 @@ output "github_variables" {
     GCP_PROJECT_ID         = var.project_id
     GCP_REGION             = var.region
     CLEF_SERVICE           = var.service_name
+    CLEF_MODEL             = var.model_variant
     WIF_PROVIDER           = google_iam_workload_identity_pool_provider.github.name
     DEPLOY_SERVICE_ACCOUNT = google_service_account.deployer.email
   }

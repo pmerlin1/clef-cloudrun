@@ -31,7 +31,7 @@ async def main():
                 "image_modes": [image.mode for image in prepared.get("images", [])]}
 
     app.inference = fake_inference
-    payload = {"model": "clef", "state": "test", "questions": {"check": {"type": "noul"}}}
+    payload = {"model": app.MODEL_NAME, "state": "test", "questions": {"check": {"type": "noul"}}}
     assert await app.systemone(Request(json.dumps(payload).encode())) == {"accepted": "test", "image_modes": []}
     picture = BytesIO()
     Image.new("RGB", (32, 32), "blue").save(picture, format="PNG")

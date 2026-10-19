@@ -1,6 +1,7 @@
 """Download one pinned HF file at a time, verify, upload, then release disk space."""
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -8,7 +9,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-REVISION = "2f3de3dd85f379784083b0814d997ab627200f0c"
+from models import model
+
+SELECTED_MODEL = model()
+REVISION = SELECTED_MODEL["revision"]
 
 
 def default_bucket():
@@ -47,7 +51,7 @@ def upload_entry(entry, bucket):
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / name
         digest = hashlib.sha256()
-        url = f"https://huggingface.co/Cloudflare/clef/resolve/{REVISION}/{name}"
+        url = f"https://huggingface.co/{SELECTED_MODEL['hf_repo']}/resolve/{REVISION}/{name}"
         print(f"Downloading {name} ({entry['size']} bytes)", flush=True)
         with urllib.request.urlopen(url, timeout=120) as response, path.open("wb") as output:
             downloaded = 0
@@ -59,15 +63,20 @@ def upload_entry(entry, bucket):
                 digest.update(chunk)
         if path.stat().st_size != entry["size"] or digest.hexdigest() != entry["sha256"]:
             raise RuntimeError(f"Integrity mismatch: {name}")
+        # Parallel composite uploads need permission to delete temporary
+        # components; the publisher role is intentionally create-only.
         subprocess.run([
             "gcloud", "storage", "cp", str(path), dest,
             f"--custom-metadata=sha256={entry['sha256']}", "--if-generation-match=0",
-        ], check=True)
+        ], check=True, env={
+            **os.environ,
+            "CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED": "False",
+        })
 
 
 def main():
     bucket = default_bucket()
-    manifest = json.loads(Path(__file__).with_name("manifest.json").read_text())
+    manifest = json.loads(Path(__file__).with_name(SELECTED_MODEL["manifest"]).read_text())
     subprocess.run(["gcloud", "storage", "buckets", "describe", f"gs://{bucket}"],
                    check=True, stdout=subprocess.DEVNULL)
     for entry in manifest:
