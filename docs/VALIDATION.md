@@ -1,7 +1,7 @@
 # Validation and measured results
 
-Originally reviewed 2026-10-07 and updated with a Flash comparison on
-2026-10-19. There are three distinct evidence sets:
+Originally reviewed 2026-10-07 and updated with Flash comparisons through
+2026-10-20. There are four distinct evidence sets:
 
 1. **The original private deployment was exercised on a real GPU.** Baseline
    measurements and a later image-capable release were tested on 2026-10-07.
@@ -15,6 +15,11 @@ Originally reviewed 2026-10-07 and updated with a Flash comparison on
    the test project has no L4 Cloud Run quota in either zonal-redundancy mode.
    This validates Flash model execution and relative warm latency, not L4
    memory, startup, or production accuracy.
+4. **A subsequent 72-case private operational screen tested bounded reading
+   and checking.** Both models again used RTX PRO 6000. Only a minimal outcome
+   ledger and aggregate measurements are public; the account-specific prompts
+   and telemetry are withheld. The public synthetic fixtures are a separate,
+   unmeasured dataset, not the prompts used for these results.
 
 Do not infer production readiness, a latency SLO, model accuracy on natural
 images, or maximum-input capacity from the small tests below.
@@ -71,15 +76,6 @@ the red image outweighed the contradictory caption in this test. These synthetic
 examples establish that the vision path executes and that the wrapper enforces
 its tested bounds; they do not establish performance or accuracy on general
 photos, documents, adversarial prompts, or sustained traffic.
-
-## Separate Jev comparison (user-supplied)
-
-The operator reported a five-profile comparison through an SF childcare MCP
-using the same family criteria for TypeSafe Jev (`jev-1.13.0`) and this Clef API.
-All five profile rankings and categorical verdicts agreed. Reported warm
-per-profile latency was 83–190 ms for Jev and 275–378 ms for Clef. This comparison
-was supplied separately; it was not reproduced in this repository, and the five
-examples cannot establish general model equivalence or decision accuracy.
 
 ## Earlier baseline measurements from the original deployment
 
@@ -148,34 +144,86 @@ reserved memory, image inputs, two-way concurrency, or L4 kernel execution.
 
 Head-to-head disposition agreement was only 6/24, mean absolute urgency
 difference was 0.908 on a 0–3 scale, and urgency-rank correlation was −0.236.
-The 27B was conservative and broadly severity-monotonic apart from the sole
-CRITICAL kernel-headers case. Flash was much more escalatory and weakly
-severity-discriminating on this reference, including two LOW-labeled glibc
-records with high visible CVSS scores. Vendor severity and CVSS can disagree,
-there were no human gold dispositions, and all eight IAM cases were HIGH. The
-result therefore favors the 27B as the more discriminating reference on this
-small set, but it does not establish production accuracy for either model.
-Human adjudication of the divergent cases is required before using Flash as an
-unchallenged inline triage default.
+The pooled correlation is confounded by source type: all eight IAM cases were
+HIGH, and Flash was less urgent on IAM while more urgent on vulnerabilities.
+Reanalysis of the saved results gives vulnerability-only severity correlations
+of 0.407 for 27B and 0.307 for Flash (n=16), and visible-CVSS correlations of
+-0.107 and 0.806, respectively (n=15). Selection by high CVSS within severity
+strata also enriches conflicts between those reference labels.
 
-Cloud Quotas showed 3,000 milli-GPU of RTX PRO 6000 allocation without zonal
-redundancy in `us-central1`, but no granted L4 allocation. Increase requests for
-one L4 were denied with and without zonal redundancy in `us-central1`, and
-without redundancy in `europe-west2`. A console or support quota request is
-still required before the rendered L4 shape can be exercised. Both private
-services were manually paused after the batches.
+Vendor severity and CVSS can disagree, and there were no human gold
+dispositions. These results show different heuristics, not which model better
+predicts consequential operational risk. Neither 27B nor scanner severity is
+ground truth. A cascade that needs both model outputs to detect disagreements
+would run both models and forward 18/24 cases; it has not demonstrated savings.
+
+The test deployment's requests for L4 quota were denied in the attempted
+regions and redundancy modes. This is a deployment-specific quota blocker,
+not a claim that L4 is unavailable to other projects. Quota approval and actual
+L4 execution remain necessary before claiming its performance or cost. Both
+private services were manually paused after the batches.
+
+## 72-case operational reading and checking screen
+
+The following private experiment used 72 authored questions grounded in real
+Google Cloud metadata, with 36 dependent pairs. Gold labels came from explicit
+facts and rules, not from either model. Each packet supplied required fields
+and rules, one substantive evidence record, and two generic distractors. This
+is deliberately easier than a real FinOps, SRE or security investigation.
+
+| Measure | Clef 27B | Clef-Flash 9B |
+|---|---:|---:|
+| HTTP successes | 72/72 | 72/72 |
+| Correct usage-category routing | 24/24 | 24/24 |
+| Correct evidence-sufficiency decision | 24/24 | 21/24 |
+| Correct proposed-statement check | 24/24 | 22/24 |
+| Correct decision overall | 72/72 | 67/72 |
+| Correct decision and evidence ID | 72/72 | 61/72 |
+| Both decisions correct within a pair | 36/36 | 31/36 |
+| Warm HTTP median / maximum, n=71 | 0.221 / 1.231 s | 0.159 / 1.179 s |
+
+Both used one RTX PRO 6000, 20 vCPU and 80 GiB, sequential requests and the same
+frozen packets. Flash was 1.39 times faster at the median in this pass, rather
+than the roughly twofold difference in the earlier audit. Neither is a latency
+SLO. First HTTP requests took 27.922 s and 23.603 s after service readiness;
+they exclude the preceding model startup and are not full cold-start times.
+
+Flash's five incorrect decisions included treating missing numeric CPU/memory
+usage as sufficient evidence, rejecting an explicit zero instance target and a
+valid unit conversion, and accepting an exact historical storage-invoice claim
+without the historical billing evidence. The invoice answer's assigned
+probability was 0.8679. This is a model probability, not a calibrated correctness
+guarantee. An independent review checked those five gold labels against the
+provided facts and rules.
+
+The packets averaged about 409 input tokens, well below the wrapper's
+2,048-token limit. Both batches reported zero output tokens; allocated GPU,
+CPU and memory still incur charges. No frontier model was called, and this
+screen establishes neither frontier-call savings nor improved final answers.
+Routing often maps already typed fields that ordinary code can handle.
+Use code for arithmetic, units and field presence; treat Flash routing or
+review flags as candidates for further testing, not an operational approval
+gate. The 27B result does not establish production safety either.
+
+The [benchmark package](../benchmarks/README.md) documents publication limits,
+recomputes the historical outcome counts without the private prompts, and
+provides independent synthetic fixtures for future runs. Those fixtures have
+not been evaluated on a live model, so the table above must not be attributed
+to them. Raw telemetry, account usage totals, identities, resource names,
+endpoints and local execution logs are not included.
 
 ## Cost interpretation
 
 Using the [published rates](https://cloud.google.com/run/pricing) checked on
-2026-10-07, for this region and disabled GPU zonal redundancy:
+2026-10-20, for this region and disabled GPU zonal redundancy:
 
 `20 × $0.000018 + 80 × $0.000002 + $0.00036522 = $0.00088522/second`
 
 That is approximately $0.0531/minute or $3.1868/hour per running instance. On
 the same pricing basis, Flash's intended 8 vCPU / 32 GiB L4 shape calculates to
-$0.0237/minute ($1.4209/hour) without zonal redundancy, or $0.0265/minute
-($1.5882/hour) with it; those are calculations, not measured Flash bills. A
+$0.0237/minute ($1.4209/hour) without zonal redundancy, or $0.0299/minute
+($1.7960/hour) with its configured redundancy; those are calculations, not
+measured Flash bills. The redundant GPU rate used is $0.0002909/second. A
 276-second cold request alone is about $0.24 of compute, followed by any paid
 idle tail. One observed 8m23s idle tail was about $0.45. The original optimization
 pass, including a failed cuDNN candidate, was estimated at $2.29 of Cloud Run

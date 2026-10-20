@@ -10,6 +10,10 @@ on:
         description: Optional model override (clef or clef-flash); defaults to CLEF_MODEL or clef
         required: false
         type: string
+      gpu_profile:
+        description: Optional GPU profile (model-default or rtx-pro-6000); defaults to CLEF_GPU_PROFILE or model-default
+        required: false
+        type: string
 permissions:
   contents: read
   id-token: write
@@ -26,11 +30,13 @@ jobs:
       REGION: ${{ vars.GCP_REGION || 'us-central1' }}
       SERVICE: ${{ vars.CLEF_SERVICE || 'clef' }}
       MODEL: ${{ inputs.model || vars.CLEF_MODEL || 'clef' }}
+      GPU_PROFILE: ${{ inputs.gpu_profile || vars.CLEF_GPU_PROFILE || 'model-default' }}
     steps:
       - uses: actions/checkout@v7
       - name: Validate configuration and run CPU checks
         run: |
           : "${PROJECT:?Set GCP_PROJECT_ID from the Terraform outputs}"
+          python3 -c "import sys; sys.path.insert(0, 'runtime'); from settings import settings; settings()"
           python3 -m pip install --disable-pip-version-check pillow==12.3.0
           python3 -m unittest discover -s runtime -p 'test_*.py'
           echo "IMAGE=$REGION-docker.pkg.dev/$PROJECT/$SERVICE/api" >> "$GITHUB_ENV"

@@ -1,0 +1,3605 @@
+{
+  "schema_version": 1,
+  "kind": "independent_synthetic_examples",
+  "notice": "All numeric values are invented. This fixture was NOT used for the published recorded model outcomes.",
+  "cases": [
+    {
+      "id": "demo-route-01-a",
+      "task": "route",
+      "family": "demo-route-01",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "Cloud Run",
+              "meter": "allocated_cpu_time",
+              "value": 14400,
+              "unit": "s{CPU}"
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "compute",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-01-b",
+      "task": "route",
+      "family": "demo-route-01",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "Vertex AI",
+              "token_category": "input",
+              "value": 123456
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-02-a",
+      "task": "route",
+      "family": "demo-route-02",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Vertex AI",
+              "token_category": "input",
+              "value": 123456
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-02-b",
+      "task": "route",
+      "family": "demo-route-02",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "Vertex AI",
+              "token_category": "cache_read_input",
+              "value": 98765
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-03-a",
+      "task": "route",
+      "family": "demo-route-03",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "Vertex AI",
+              "token_category": "cache_read_input",
+              "value": 98765
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-03-b",
+      "task": "route",
+      "family": "demo-route-03",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Vertex AI",
+              "token_category": "output",
+              "value": 4321
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-04-a",
+      "task": "route",
+      "family": "demo-route-04",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "Vertex AI",
+              "token_category": "cache_write_input",
+              "value": 54321
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-04-b",
+      "task": "route",
+      "family": "demo-route-04",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "Vertex AI",
+              "token_category": "output",
+              "value": 4321
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "output",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-05-a",
+      "task": "route",
+      "family": "demo-route-05",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Vertex AI",
+              "token_category": "output",
+              "value": 4321
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-05-b",
+      "task": "route",
+      "family": "demo-route-05",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "GCS",
+              "object_bytes": 3000000000
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "storage",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-06-a",
+      "task": "route",
+      "family": "demo-route-06",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "GCS",
+              "object_bytes": 3000000000
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "storage",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-06-b",
+      "task": "route",
+      "family": "demo-route-06",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Cloud Run",
+              "meter": "allocated_cpu_time",
+              "value": 14400,
+              "unit": "s{CPU}"
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "compute",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-07-a",
+      "task": "route",
+      "family": "demo-route-07",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "Cloud Run",
+              "meter": "allocated_cpu_time",
+              "value": 14400,
+              "unit": "s{CPU}"
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "compute",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-07-b",
+      "task": "route",
+      "family": "demo-route-07",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "Vertex AI",
+              "token_category": "input",
+              "value": 123456
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-08-a",
+      "task": "route",
+      "family": "demo-route-08",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Vertex AI",
+              "token_category": "input",
+              "value": 123456
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-08-b",
+      "task": "route",
+      "family": "demo-route-08",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "Vertex AI",
+              "token_category": "cache_read_input",
+              "value": 98765
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-09-a",
+      "task": "route",
+      "family": "demo-route-09",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "Vertex AI",
+              "token_category": "cache_read_input",
+              "value": 98765
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-09-b",
+      "task": "route",
+      "family": "demo-route-09",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Vertex AI",
+              "token_category": "output",
+              "value": 4321
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-10-a",
+      "task": "route",
+      "family": "demo-route-10",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "Vertex AI",
+              "token_category": "cache_write_input",
+              "value": 54321
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-10-b",
+      "task": "route",
+      "family": "demo-route-10",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "Vertex AI",
+              "token_category": "output",
+              "value": 4321
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "output",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-11-a",
+      "task": "route",
+      "family": "demo-route-11",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Vertex AI",
+              "token_category": "output",
+              "value": 4321
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-route-11-b",
+      "task": "route",
+      "family": "demo-route-11",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "platform": "GCS",
+              "object_bytes": 3000000000
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "storage",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-route-12-a",
+      "task": "route",
+      "family": "demo-route-12",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "platform": "GCS",
+              "object_bytes": 3000000000
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "cache_input": "Cache-read or cache-write input-token usage.",
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "storage",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-route-12-b",
+      "task": "route",
+      "family": "demo-route-12",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Which usage category applies to the supplied meter?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "platform": "Cloud Run",
+              "meter": "allocated_cpu_time",
+              "value": 14400,
+              "unit": "s{CPU}"
+            }
+          },
+          "rule": "Keep input, cache, output, allocated compute time, and persisted storage separate. Do not infer dollars."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "output": "Output-token usage.",
+              "storage": "Persisted object bytes.",
+              "compute": "Allocated CPU, memory, or GPU time.",
+              "plain_input": "Ordinary input-token usage.",
+              "cache_input": "Cache-read or cache-write input-token usage."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "compute",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-01-a",
+      "task": "evidence",
+      "family": "demo-evidence-01",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {
+                "invoice_rows": [
+                  {
+                    "gross_dollars": 10,
+                    "credits_dollars": -2
+                  }
+                ]
+              },
+              "required_fields": [
+                "invoice_rows"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-01-b",
+      "task": "evidence",
+      "family": "demo-evidence-01",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {},
+              "required_fields": [
+                "invoice_rows"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-02-a",
+      "task": "evidence",
+      "family": "demo-evidence-02",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "token_count": 123456,
+                "category": "input"
+              },
+              "required_fields": [
+                "token_count",
+                "category"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-02-b",
+      "task": "evidence",
+      "family": "demo-evidence-02",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {
+                "category": "input"
+              },
+              "required_fields": [
+                "token_count",
+                "category"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-03-a",
+      "task": "evidence",
+      "family": "demo-evidence-03",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {
+                "cpu_seconds": 14400,
+                "unit": "s{CPU}"
+              },
+              "required_fields": [
+                "cpu_seconds",
+                "unit"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-03-b",
+      "task": "evidence",
+      "family": "demo-evidence-03",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "unit": "s{CPU}"
+              },
+              "required_fields": [
+                "cpu_seconds",
+                "unit"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-04-a",
+      "task": "evidence",
+      "family": "demo-evidence-04",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {
+                "memory_gib_seconds": 57600,
+                "unit": "GiBy.s"
+              },
+              "required_fields": [
+                "memory_gib_seconds",
+                "unit"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-04-b",
+      "task": "evidence",
+      "family": "demo-evidence-04",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {
+                "unit": "GiBy.s"
+              },
+              "required_fields": [
+                "memory_gib_seconds",
+                "unit"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-05-a",
+      "task": "evidence",
+      "family": "demo-evidence-05",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "request_count": 1800
+              },
+              "required_fields": [
+                "request_count"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-05-b",
+      "task": "evidence",
+      "family": "demo-evidence-05",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {},
+              "required_fields": [
+                "request_count"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-06-a",
+      "task": "evidence",
+      "family": "demo-evidence-06",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {
+                "charged_dollars": 8,
+                "request_count": 1800
+              },
+              "required_fields": [
+                "charged_dollars",
+                "request_count"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-06-b",
+      "task": "evidence",
+      "family": "demo-evidence-06",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "request_count": 1800
+              },
+              "required_fields": [
+                "charged_dollars",
+                "request_count"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-07-a",
+      "task": "evidence",
+      "family": "demo-evidence-07",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {
+                "object_count": 12,
+                "object_bytes": 3000000000
+              },
+              "required_fields": [
+                "object_count",
+                "object_bytes"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-07-b",
+      "task": "evidence",
+      "family": "demo-evidence-07",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {
+                "object_bytes": 3000000000
+              },
+              "required_fields": [
+                "object_count",
+                "object_bytes"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-08-a",
+      "task": "evidence",
+      "family": "demo-evidence-08",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "accelerator": "nvidia-l4"
+              },
+              "required_fields": [
+                "accelerator"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-08-b",
+      "task": "evidence",
+      "family": "demo-evidence-08",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {},
+              "required_fields": [
+                "accelerator"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-09-a",
+      "task": "evidence",
+      "family": "demo-evidence-09",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {
+                "token_counts": {
+                  "input": 123456
+                },
+                "category_rates": {
+                  "input": 1
+                }
+              },
+              "required_fields": [
+                "token_counts",
+                "category_rates"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-09-b",
+      "task": "evidence",
+      "family": "demo-evidence-09",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "category_rates": {
+                  "input": 1
+                }
+              },
+              "required_fields": [
+                "token_counts",
+                "category_rates"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-10-a",
+      "task": "evidence",
+      "family": "demo-evidence-10",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {
+                "billable_seconds": 3600
+              },
+              "required_fields": [
+                "billable_seconds"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-10-b",
+      "task": "evidence",
+      "family": "demo-evidence-10",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {},
+              "required_fields": [
+                "billable_seconds"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-11-a",
+      "task": "evidence",
+      "family": "demo-evidence-11",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {
+                "scaling": {
+                  "mode": "MANUAL",
+                  "target": 0
+                }
+              },
+              "required_fields": [
+                "scaling"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-evidence-11-b",
+      "task": "evidence",
+      "family": "demo-evidence-11",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "available_fields": {},
+              "required_fields": [
+                "scaling"
+              ]
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-evidence-12-a",
+      "task": "evidence",
+      "family": "demo-evidence-12",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "available_fields": {
+                "invocation_count": 200
+              },
+              "required_fields": [
+                "invocation_count"
+              ]
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "supported": "All explicitly required fields are supplied.",
+              "missing": "At least one required field is absent or null."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-evidence-12-b",
+      "task": "evidence",
+      "family": "demo-evidence-12",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Can the specifically required observations be reported from this packet?",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "available_fields": {},
+              "required_fields": [
+                "invocation_count"
+              ]
+            }
+          },
+          "rule": "Every named required field must be present and non-null; never infer a missing value."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "missing": "At least one required field is absent or null.",
+              "supported": "All explicitly required fields are supplied."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-01-a",
+      "task": "check",
+      "family": "demo-check-01",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: A proposed 8-vCPU shape meets the supplied minimum.",
+          "evidence": {
+            "E1": {
+              "minimum_vcpu": 8
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Use the supplied minimum, not an inferred platform default."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-01-b",
+      "task": "check",
+      "family": "demo-check-01",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: A proposed 4-vCPU shape meets the supplied minimum.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "minimum_vcpu": 8
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Use the supplied minimum, not an inferred platform default."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-02-a",
+      "task": "check",
+      "family": "demo-check-02",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: The configured accelerator is nvidia-l4.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "accelerator": "nvidia-l4"
+            }
+          },
+          "rule": "Read the configured accelerator."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-02-b",
+      "task": "check",
+      "family": "demo-check-02",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: The configured accelerator is nvidia-rtx-pro-6000.",
+          "evidence": {
+            "E1": {
+              "accelerator": "nvidia-l4"
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Read the configured accelerator."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-03-a",
+      "task": "check",
+      "family": "demo-check-03",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Objects can remain present with target zero.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "manual_target": 0,
+              "persisted_objects": 12
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Pausing compute does not delete persisted storage."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-03-b",
+      "task": "check",
+      "family": "demo-check-03",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Target zero means the persisted object count is zero.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "manual_target": 0,
+              "persisted_objects": 12
+            }
+          },
+          "rule": "Pausing compute does not delete persisted storage."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-04-a",
+      "task": "check",
+      "family": "demo-check-04",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Zero output tokens alone does not establish zero compute cost.",
+          "evidence": {
+            "E1": {
+              "output_tokens": 0,
+              "compute_meter": "allocated GPU time"
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Compute is charged using allocated resources and duration."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-04-b",
+      "task": "check",
+      "family": "demo-check-04",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Zero output tokens proves zero compute cost.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "output_tokens": 0,
+              "compute_meter": "allocated GPU time"
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Compute is charged using allocated resources and duration."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-05-a",
+      "task": "check",
+      "family": "demo-check-05",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: This allocation counter alone cannot prove total device fit.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "pytorch_allocated_bytes": 18000000000,
+              "total_reserved_and_driver_bytes": null
+            }
+          },
+          "rule": "Allocated memory excludes some reserved, driver, and framework memory."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-05-b",
+      "task": "check",
+      "family": "demo-check-05",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: This allocation counter alone proves total device fit.",
+          "evidence": {
+            "E1": {
+              "pytorch_allocated_bytes": 18000000000,
+              "total_reserved_and_driver_bytes": null
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Allocated memory excludes some reserved, driver, and framework memory."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-06-a",
+      "task": "check",
+      "family": "demo-check-06",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Token counters alone do not reconstruct the invoice including credits.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "input_tokens": 123456,
+              "invoice_rows": null
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Charged dollars require billing evidence."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-06-b",
+      "task": "check",
+      "family": "demo-check-06",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Token counters alone reconstruct the invoice including credits.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "input_tokens": 123456,
+              "invoice_rows": null
+            }
+          },
+          "rule": "Charged dollars require billing evidence."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-07-a",
+      "task": "check",
+      "family": "demo-check-07",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Equal category prices cannot be established from this packet.",
+          "evidence": {
+            "E1": {
+              "categories": [
+                "input",
+                "cache_read_input"
+              ],
+              "rates": null
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "No category prices are supplied."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-07-b",
+      "task": "check",
+      "family": "demo-check-07",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Both categories have equal prices.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "categories": [
+                "input",
+                "cache_read_input"
+              ],
+              "rates": null
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "No category prices are supplied."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-08-a",
+      "task": "check",
+      "family": "demo-check-08",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: This unit measures CPU-seconds.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "metric": "allocated_cpu_time",
+              "unit": "s{CPU}"
+            }
+          },
+          "rule": "s{CPU} is CPU allocation time."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-08-b",
+      "task": "check",
+      "family": "demo-check-08",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: This unit measures tokens.",
+          "evidence": {
+            "E1": {
+              "metric": "allocated_cpu_time",
+              "unit": "s{CPU}"
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "s{CPU} is CPU allocation time."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-09-a",
+      "task": "check",
+      "family": "demo-check-09",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: The inventory contains 3 decimal GB.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "object_bytes": 3000000000
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Decimal GB is 1,000,000,000 bytes; GiB is 1,073,741,824 bytes."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-09-b",
+      "task": "check",
+      "family": "demo-check-09",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: The inventory contains 3 decimal GiB.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "object_bytes": 3000000000
+            }
+          },
+          "rule": "Decimal GB is 1,000,000,000 bytes; GiB is 1,073,741,824 bytes."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-10-a",
+      "task": "check",
+      "family": "demo-check-10",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: A missing request count does not establish zero usage.",
+          "evidence": {
+            "E1": {
+              "request_count": null,
+              "observed_input_tokens": 123456
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Missing means unknown; supplied token evidence still indicates activity."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-10-b",
+      "task": "check",
+      "family": "demo-check-10",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: A missing request count proves zero usage.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "request_count": null,
+              "observed_input_tokens": 123456
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Missing means unknown; supplied token evidence still indicates activity."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-11-a",
+      "task": "check",
+      "family": "demo-check-11",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: The packet specifies a manual target of zero.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "mode": "MANUAL",
+              "target": 0
+            }
+          },
+          "rule": "MANUAL and AUTOMATIC are distinct modes."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      }
+    },
+    {
+      "id": "demo-check-11-b",
+      "task": "check",
+      "family": "demo-check-11",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: The packet specifies automatic request-driven scaling.",
+          "evidence": {
+            "E1": {
+              "mode": "MANUAL",
+              "target": 0
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "MANUAL and AUTOMATIC are distinct modes."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      }
+    },
+    {
+      "id": "demo-check-12-a",
+      "task": "check",
+      "family": "demo-check-12",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Current bytes alone do not establish the exact historical invoice.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "current_object_bytes": 3000000000,
+              "historical_byte_hours": null,
+              "billed_dollars": null
+            },
+            "E3": {
+              "note": "No additional measurements are supplied."
+            }
+          },
+          "rule": "Historical storage charges require more than a current inventory."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "consistent": "Follows from the supplied facts and rule.",
+              "contradicted": "Conflicts with the supplied facts or rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      }
+    },
+    {
+      "id": "demo-check-12-b",
+      "task": "check",
+      "family": "demo-check-12",
+      "payload": {
+        "model": "clef",
+        "state": {
+          "request": "Check this statement: Current bytes alone establish the exact historical invoice.",
+          "evidence": {
+            "E1": {
+              "note": "No additional measurements are supplied."
+            },
+            "E2": {
+              "note": "No additional measurements are supplied."
+            },
+            "E3": {
+              "current_object_bytes": 3000000000,
+              "historical_byte_hours": null,
+              "billed_dollars": null
+            }
+          },
+          "rule": "Historical storage charges require more than a current inventory."
+        },
+        "questions": {
+          "decision": {
+            "type": "choice",
+            "instructions": "Select the answer to the exact request.",
+            "criteria": {
+              "contradicted": "Conflicts with the supplied facts or rule.",
+              "consistent": "Follows from the supplied facts and rule."
+            }
+          },
+          "evidence": {
+            "type": "choice",
+            "instructions": "Select the evidence item containing the decisive facts or missing fields.",
+            "criteria": {
+              "E1": "Evidence item E1",
+              "E2": "Evidence item E2",
+              "E3": "Evidence item E3"
+            }
+          }
+        }
+      },
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      }
+    }
+  ]
+}

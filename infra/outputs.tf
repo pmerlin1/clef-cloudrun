@@ -1,10 +1,11 @@
 output "github_variables" {
-  description = "Non-secret repository variables consumed by .github/workflows/deploy.yaml."
+  description = "Non-secret repository variables consumed by .github/workflows/deploy.yaml, including CLEF_GPU_PROFILE."
   value = {
     GCP_PROJECT_ID         = var.project_id
     GCP_REGION             = var.region
     CLEF_SERVICE           = var.service_name
     CLEF_MODEL             = var.model_variant
+    CLEF_GPU_PROFILE       = var.gpu_profile
     WIF_PROVIDER           = google_iam_workload_identity_pool_provider.github.name
     DEPLOY_SERVICE_ACCOUNT = google_service_account.deployer.email
   }

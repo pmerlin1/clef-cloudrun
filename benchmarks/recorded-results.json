@@ -1,0 +1,1412 @@
+{
+  "schema_version": 1,
+  "kind": "private_prompt_outcome_ledger",
+  "notice": "Only gold labels and observed selected choices are reproduced. Private prompts and telemetry are withheld. The independent synthetic fixture was not used for these observations.",
+  "methodology": {
+    "cases": 72,
+    "paired_families": 36,
+    "cases_per_task": 24,
+    "labels": "Authored metric categories, required-field presence, arithmetic, and explicit constraints; not AI gold labels.",
+    "dependence": "Pairs and reused evidence are dependent, not 72 independent production samples.",
+    "limitations": "Small bounded reading/checking screen with authored requests, not production judgement, frontier-model evaluation, or measured cost savings.",
+    "privacy": "Case and family IDs were replaced. No original prompts, resource identifiers, per-account usage, timestamps, endpoints, paths, credentials, or IAM records are included."
+  },
+  "environment": {
+    "platform": "Cloud Run",
+    "gpu": "NVIDIA RTX PRO 6000",
+    "gpus": 1,
+    "vcpu": 20,
+    "memory_gib": 80,
+    "l4_executed": false,
+    "timing_note": "One sequential pass per model using the same client. Warm samples exclude the first request after readiness. These are observations, not latency SLOs or total platform cold-start measurements.",
+    "client_concurrency": 1
+  },
+  "measurements": {
+    "clef": {
+      "successful_http_calls": 72,
+      "warm_http_median_seconds": 0.221,
+      "warm_http_max_seconds": 1.231,
+      "warm_sample_count": 71,
+      "first_http_seconds_after_service_ready": 27.922,
+      "resume_through_pause_window_seconds": 353.845
+    },
+    "clef-flash": {
+      "successful_http_calls": 72,
+      "warm_http_median_seconds": 0.159,
+      "warm_http_max_seconds": 1.179,
+      "warm_sample_count": 71,
+      "first_http_seconds_after_service_ready": 23.603,
+      "resume_through_pause_window_seconds": 254.11
+    }
+  },
+  "cases": [
+    {
+      "id": "observed-route-01-a",
+      "task": "route",
+      "family": "observed-route-01",
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "cache_input",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "cache_input",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-01-b",
+      "task": "route",
+      "family": "observed-route-01",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-02-a",
+      "task": "route",
+      "family": "observed-route-02",
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "cache_input",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "cache_input",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-02-b",
+      "task": "route",
+      "family": "observed-route-02",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-03-a",
+      "task": "route",
+      "family": "observed-route-03",
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "cache_input",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "cache_input",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-03-b",
+      "task": "route",
+      "family": "observed-route-03",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-04-a",
+      "task": "route",
+      "family": "observed-route-04",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-04-b",
+      "task": "route",
+      "family": "observed-route-04",
+      "gold": {
+        "decision": "output",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "output",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "output",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-05-a",
+      "task": "route",
+      "family": "observed-route-05",
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "output",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "output",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-05-b",
+      "task": "route",
+      "family": "observed-route-05",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-06-a",
+      "task": "route",
+      "family": "observed-route-06",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-06-b",
+      "task": "route",
+      "family": "observed-route-06",
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "output",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "output",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-07-a",
+      "task": "route",
+      "family": "observed-route-07",
+      "gold": {
+        "decision": "output",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "output",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "output",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-07-b",
+      "task": "route",
+      "family": "observed-route-07",
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "cache_input",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "cache_input",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-08-a",
+      "task": "route",
+      "family": "observed-route-08",
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "cache_input",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "cache_input",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-08-b",
+      "task": "route",
+      "family": "observed-route-08",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-09-a",
+      "task": "route",
+      "family": "observed-route-09",
+      "gold": {
+        "decision": "cache_input",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "cache_input",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "cache_input",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-09-b",
+      "task": "route",
+      "family": "observed-route-09",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-10-a",
+      "task": "route",
+      "family": "observed-route-10",
+      "gold": {
+        "decision": "plain_input",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "plain_input",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-10-b",
+      "task": "route",
+      "family": "observed-route-10",
+      "gold": {
+        "decision": "output",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "output",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "output",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-11-a",
+      "task": "route",
+      "family": "observed-route-11",
+      "gold": {
+        "decision": "output",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "output",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "output",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-route-11-b",
+      "task": "route",
+      "family": "observed-route-11",
+      "gold": {
+        "decision": "compute",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "compute",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "compute",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-route-12-a",
+      "task": "route",
+      "family": "observed-route-12",
+      "gold": {
+        "decision": "compute",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "compute",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "compute",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-route-12-b",
+      "task": "route",
+      "family": "observed-route-12",
+      "gold": {
+        "decision": "storage",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "storage",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "storage",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-01-a",
+      "task": "evidence",
+      "family": "observed-evidence-01",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-01-b",
+      "task": "evidence",
+      "family": "observed-evidence-01",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-02-a",
+      "task": "evidence",
+      "family": "observed-evidence-02",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-02-b",
+      "task": "evidence",
+      "family": "observed-evidence-02",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-03-a",
+      "task": "evidence",
+      "family": "observed-evidence-03",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-03-b",
+      "task": "evidence",
+      "family": "observed-evidence-03",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-04-a",
+      "task": "evidence",
+      "family": "observed-evidence-04",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-04-b",
+      "task": "evidence",
+      "family": "observed-evidence-04",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-05-a",
+      "task": "evidence",
+      "family": "observed-evidence-05",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-05-b",
+      "task": "evidence",
+      "family": "observed-evidence-05",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-06-a",
+      "task": "evidence",
+      "family": "observed-evidence-06",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-06-b",
+      "task": "evidence",
+      "family": "observed-evidence-06",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-07-a",
+      "task": "evidence",
+      "family": "observed-evidence-07",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-07-b",
+      "task": "evidence",
+      "family": "observed-evidence-07",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-08-a",
+      "task": "evidence",
+      "family": "observed-evidence-08",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-08-b",
+      "task": "evidence",
+      "family": "observed-evidence-08",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-09-a",
+      "task": "evidence",
+      "family": "observed-evidence-09",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-09-b",
+      "task": "evidence",
+      "family": "observed-evidence-09",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-10-a",
+      "task": "evidence",
+      "family": "observed-evidence-10",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-10-b",
+      "task": "evidence",
+      "family": "observed-evidence-10",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-11-a",
+      "task": "evidence",
+      "family": "observed-evidence-11",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-11-b",
+      "task": "evidence",
+      "family": "observed-evidence-11",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-12-a",
+      "task": "evidence",
+      "family": "observed-evidence-12",
+      "gold": {
+        "decision": "supported",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "supported",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "supported",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-evidence-12-b",
+      "task": "evidence",
+      "family": "observed-evidence-12",
+      "gold": {
+        "decision": "missing",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "missing",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "missing",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-01-a",
+      "task": "check",
+      "family": "observed-check-01",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-01-b",
+      "task": "check",
+      "family": "observed-check-01",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-02-a",
+      "task": "check",
+      "family": "observed-check-02",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-02-b",
+      "task": "check",
+      "family": "observed-check-02",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-03-a",
+      "task": "check",
+      "family": "observed-check-03",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-03-b",
+      "task": "check",
+      "family": "observed-check-03",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-04-a",
+      "task": "check",
+      "family": "observed-check-04",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-04-b",
+      "task": "check",
+      "family": "observed-check-04",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-05-a",
+      "task": "check",
+      "family": "observed-check-05",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-05-b",
+      "task": "check",
+      "family": "observed-check-05",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-06-a",
+      "task": "check",
+      "family": "observed-check-06",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-06-b",
+      "task": "check",
+      "family": "observed-check-06",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-07-a",
+      "task": "check",
+      "family": "observed-check-07",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-07-b",
+      "task": "check",
+      "family": "observed-check-07",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-08-a",
+      "task": "check",
+      "family": "observed-check-08",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-08-b",
+      "task": "check",
+      "family": "observed-check-08",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-09-a",
+      "task": "check",
+      "family": "observed-check-09",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-09-b",
+      "task": "check",
+      "family": "observed-check-09",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-10-a",
+      "task": "check",
+      "family": "observed-check-10",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-10-b",
+      "task": "check",
+      "family": "observed-check-10",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-11-a",
+      "task": "check",
+      "family": "observed-check-11",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E3"
+        }
+      }
+    },
+    {
+      "id": "observed-check-11-b",
+      "task": "check",
+      "family": "observed-check-11",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E1"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        },
+        "clef-flash": {
+          "decision": "contradicted",
+          "evidence": "E1"
+        }
+      }
+    },
+    {
+      "id": "observed-check-12-a",
+      "task": "check",
+      "family": "observed-check-12",
+      "gold": {
+        "decision": "consistent",
+        "evidence": "E2"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "consistent",
+          "evidence": "E2"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E2"
+        }
+      }
+    },
+    {
+      "id": "observed-check-12-b",
+      "task": "check",
+      "family": "observed-check-12",
+      "gold": {
+        "decision": "contradicted",
+        "evidence": "E3"
+      },
+      "predictions": {
+        "clef": {
+          "decision": "contradicted",
+          "evidence": "E3"
+        },
+        "clef-flash": {
+          "decision": "consistent",
+          "evidence": "E3"
+        }
+      }
+    }
+  ]
+}

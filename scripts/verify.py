@@ -1,4 +1,5 @@
 """Read Cloud Run metadata and instance metrics without invoking the service."""
+import argparse
 import datetime
 import json
 from pathlib import Path
@@ -12,6 +13,9 @@ root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / "runtime"))
 from settings import settings
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--paused", action="store_true", help="Validate MANUAL zero after stopping a test batch")
+args = parser.parse_args()
 config = settings()
 common = [f"--project={config['project']}", f"--region={config['region']}", "--format=json"]
 with tempfile.TemporaryDirectory() as directory:
@@ -22,7 +26,8 @@ with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / filename
         path.write_text(content)
         paths.append(str(path))
-    subprocess.run([sys.executable, str(root / "runtime" / "verify_service.py"), *paths], check=True)
+    options = ["--paused"] if args.paused else []
+    subprocess.run([sys.executable, str(root / "runtime" / "verify_service.py"), *paths, *options], check=True)
 
 now = datetime.datetime.now(datetime.timezone.utc)
 params = {
