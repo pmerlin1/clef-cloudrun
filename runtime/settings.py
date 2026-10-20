@@ -26,6 +26,7 @@ def settings():
         "model_revision": selected_model["revision"],
         "model_manifest": selected_model["manifest"],
         "hf_repo": selected_model["hf_repo"],
+        "gpu_profile": selected_model["gpu_profile"],
         "accelerator": selected_model["accelerator"],
         "cpu": selected_model["cpu"],
         "memory": selected_model["memory"],

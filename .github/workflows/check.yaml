@@ -19,8 +19,9 @@ jobs:
           PROJECT: example-clef-project
         run: |
           python3 -m pip install --disable-pip-version-check pillow==12.3.0
-          python3 -m compileall -q runtime scripts
+          python3 -m compileall -q runtime scripts benchmarks
           python3 -m unittest discover -s runtime -p 'test_*.py'
+          python3 -m unittest discover -s benchmarks -p 'test_*.py'
           python3 -m pip install --disable-pip-version-check fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
           python3 scripts/check_adapter.py
       - name: Terraform checks (no backend or cloud credentials)

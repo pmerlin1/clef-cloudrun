@@ -9,17 +9,28 @@ This is a bounded text and image adapter for `/v1/systemone`.
 | Model | Cloud Run GPU | Instance shape | Pinned weights |
 |---|---|---|---:|
 | `clef` | RTX PRO 6000 (96 GB) | 20 vCPU / 80 GiB | 55 GB |
-| `clef-flash` | L4 (24 GB) | 8 vCPU / 32 GiB | 19 GB |
+| `clef-flash` | L4 (24 GB), intended shape | 8 vCPU / 32 GiB | 19 GB |
 
 The original 27B deployment was exercised on an RTX PRO 6000 in `us-central1`,
 including bounded PNG/JPEG requests and negative input tests. See
 [validation and measurements](docs/VALIDATION.md) for the exact evidence boundary
 for each model and deployment path.
+Flash has executed successfully on the RTX PRO 6000. Its rendered L4 shape has
+not yet been exercised because the test deployment's L4 quota was denied.
+The [bounded benchmark](benchmarks/README.md) separates those measured results
+from the fully synthetic public fixtures available for future runs.
+For the complete Flash bootstrap, weight upload, GPU deployment and shutdown
+path, use the [Flash playbook](docs/FLASH.md) and its
+[Terraform example](infra/terraform.flash.tfvars.example). An explicit
+`rtx-pro-6000` GPU profile matches the hardware used for Flash validation;
+`model-default` retains the intended L4 shape.
 
 ## What you get
 
 - IAM required, an explicit invoker list, and public access prevention on GCS.
-- Minimum instances **0**, maximum **1**, GPU zonal redundancy disabled.
+- Minimum instances **0**, maximum **1**. GPU zonal redundancy is disabled for
+  `clef` and enabled for the intended `clef-flash` L4 shape. The explicit RTX
+  profile disables GPU zonal redundancy and uses 20 vCPU / 80 GiB.
 - A model-specific GPU shape: RTX PRO 6000 with **20 vCPU / 80 GiB RAM** for
   `clef`, or L4 with **8 vCPU / 32 GiB RAM** for `clef-flash`.
 - HTTP concurrency **8**, with at most **two** simultaneous model calls.
@@ -76,6 +87,8 @@ IDs, and invoker identity such as `user:you@example.com`. Set `model_variant` to
 `clef` or `clef-flash`. Keep `service_name` aligned with the deployment you mean
 to operate (for example, `clef-flash` for a separate Flash service). The IDs prevent
 a renamed or re-created GitHub name from inheriting deployment access. Keep
+`gpu_profile = "model-default"` for the model's intended shape, or explicitly
+select `"rtx-pro-6000"` for the hardware used in the Flash tests. Keep
 `terraform.tfvars` and Terraform state private; they are ignored by Git. Defaults
 are service and model `clef` in region `us-central1`. Protect `main` and review
 workflow changes.
@@ -193,10 +206,13 @@ validated here.
 
 ## Cost and stopping a test batch
 
-At the tested `us-central1` list prices on **2026-10-07**, the 27B shape costs
+At the `us-central1` list prices checked on **2026-10-20**, the 27B shape costs
 approximately **$3.19/hour, or $0.053/minute per running instance**, including GPU,
-CPU and RAM. At the same pricing basis, the Flash L4 shape calculates to
-approximately **$1.42/hour, or $0.024/minute**. Startup and idle time are billed.
+CPU and RAM, without zonal redundancy. The intended Flash L4 shape calculates
+to approximately **$1.80/hour, or $0.030/minute** with its configured zonal
+redundancy, or **$1.42/hour** without redundancy. L4 execution and its bill have
+not been measured; the reported Flash benchmarks used the same RTX shape as
+27B. Startup and idle time are billed.
 Regional GCS model storage, image storage, GitHub Actions, networking, taxes and
 discounts are separate. [Pricing](https://cloud.google.com/run/pricing) can change.
 
@@ -211,6 +227,7 @@ For a completed test batch you can explicitly stop the service:
 
 ```bash
 python3 scripts/set_scaling.py 0     # Disables the API; allows in-flight work to finish.
+python3 scripts/verify.py --paused  # Checks MANUAL zero, IAM and delayed instance samples.
 # Check Cloud Run instance metrics until shutdown completes.
 python3 scripts/set_scaling.py auto  # Restore request-driven min=0/max=1.
 ```
@@ -234,6 +251,7 @@ python3 -m venv .venv
 .venv/bin/pip install pillow==12.3.0 fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
 .venv/bin/python -m compileall -q runtime scripts
 .venv/bin/python -m unittest discover -s runtime -p 'test_*.py'
+.venv/bin/python -m unittest discover -s benchmarks -p 'test_*.py'
 .venv/bin/python scripts/check_adapter.py
 terraform -chdir=infra fmt -check
 terraform -chdir=infra init -backend=false
@@ -244,6 +262,6 @@ These checks do not deploy or run inference. The independent CI workflow runs
 them without cloud credentials. Model/dependency upgrades need a separate GPU
 validation because import checks alone cannot prove CUDA execution.
 
-See [third-party notices](THIRD_PARTY.md), [validation](docs/VALIDATION.md), and the
-[LinkedIn draft](docs/LINKEDIN.md). This is a community recipe, not an official
+See [third-party notices](THIRD_PARTY.md), [validation](docs/VALIDATION.md), and
+[benchmarks](benchmarks/README.md). This is a community recipe, not an official
 Cloudflare or Google release.

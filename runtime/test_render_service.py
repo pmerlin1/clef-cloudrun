@@ -4,11 +4,14 @@ import unittest
 from unittest.mock import patch
 
 from render_service import needs_release, service
+from models import model
+from settings import settings
 
 
 class ReleaseTest(unittest.TestCase):
     def setUp(self):
-        config = patch.dict(os.environ, {"PROJECT": "example-project", "REGION": "us-central1", "SERVICE": "clef"})
+        config = patch.dict(os.environ, {"PROJECT": "example-project", "REGION": "us-central1", "SERVICE": "clef",
+                                         "MODEL": "clef", "GPU_PROFILE": "model-default"})
         config.start()
         self.addCleanup(config.stop)
         self.desired = service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "a" * 64)
@@ -62,6 +65,36 @@ class ReleaseTest(unittest.TestCase):
         with patch.dict(os.environ, {"MODEL": "unknown-model"}):
             with self.assertRaisesRegex(ValueError, "MODEL must be one of"):
                 service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "d" * 64)
+
+    def test_flash_rtx_profile_changes_hardware_and_keeps_pinned_weights(self):
+        default = model("clef-flash", "model-default")
+        with patch.dict(os.environ, {"MODEL": "clef-flash", "SERVICE": "clef-flash", "GPU_PROFILE": "rtx-pro-6000"}):
+            selected = settings()
+            desired = service("us-central1-docker.pkg.dev/example-project/clef-flash/api@sha256:" + "e" * 64)
+        self.assertEqual(selected["gpu_profile"], "rtx-pro-6000")
+        self.assertEqual(selected["model_revision"], default["revision"])
+        self.assertEqual(selected["model_manifest"], default["manifest"])
+        self.assertEqual(selected["hf_repo"], default["hf_repo"])
+        template = desired["spec"]["template"]
+        self.assertEqual(template["metadata"]["annotations"]["run.googleapis.com/gpu-zonal-redundancy-disabled"], "true")
+        spec = template["spec"]
+        self.assertEqual(spec["nodeSelector"]["run.googleapis.com/accelerator"], "nvidia-rtx-pro-6000")
+        self.assertEqual(spec["containers"][0]["resources"]["limits"],
+                         {"cpu": "20", "memory": "80Gi", "nvidia.com/gpu": "1"})
+        env = {entry["name"]: entry["value"] for entry in spec["containers"][0]["env"]}
+        self.assertEqual(env["MODEL"], "clef-flash")
+        self.assertEqual(env["MODEL_REVISION"], default["revision"])
+
+    def test_27b_default_and_explicit_rtx_profile_keep_same_shape(self):
+        default, explicit = model("clef", "model-default"), model("clef", "rtx-pro-6000")
+        for key in ("revision", "manifest", "hf_repo", "accelerator", "cpu", "memory", "gpu_zonal_redundancy_disabled"):
+            self.assertEqual(default[key], explicit[key])
+
+    def test_unknown_or_l4_override_profile_is_rejected(self):
+        for profile in ("unknown", "nvidia-l4", "l4", ""):
+            with self.subTest(profile=profile), patch.dict(os.environ, {"GPU_PROFILE": profile}):
+                with self.assertRaisesRegex(ValueError, "GPU_PROFILE must be one of"):
+                    service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "f" * 64)
 
     def test_custom_service_names_every_resource_consistently(self):
         with patch.dict(os.environ, {"SERVICE": "my-clef", "REGION": "europe-west4"}):

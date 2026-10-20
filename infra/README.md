@@ -48,6 +48,7 @@ No modules.
 | <a name="input_github_owner_id"></a> [github\_owner\_id](#input\_github\_owner\_id) | Immutable numeric owner ID: gh api repos/OWNER/REPO --jq .owner.id. | `string` | n/a | yes |
 | <a name="input_github_repository"></a> [github\_repository](#input\_github\_repository) | GitHub OWNER/REPO containing this starter at the repository root. | `string` | n/a | yes |
 | <a name="input_github_repository_id"></a> [github\_repository\_id](#input\_github\_repository\_id) | Immutable numeric repository ID: gh api repos/OWNER/REPO --jq .id. | `string` | n/a | yes |
+| <a name="input_gpu_profile"></a> [gpu\_profile](#input\_gpu\_profile) | Deployment GPU shape: model-default preserves the model registry; rtx-pro-6000 selects one RTX PRO 6000, 20 vCPU, 80 GiB, without zonal redundancy. | `string` | `"model-default"` | no |
 | <a name="input_invoker_members"></a> [invoker\_members](#input\_invoker\_members) | Explicit IAM members allowed to call Clef, e.g. user:you@example.com. No public principals. | `set(string)` | n/a | yes |
 | <a name="input_model_variant"></a> [model\_variant](#input\_model\_variant) | Pinned Clef model variant whose GPU shape is rendered by the deployment workflow. | `string` | `"clef"` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | Existing Google Cloud project with billing enabled. | `string` | n/a | yes |
@@ -59,7 +60,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_github_variables"></a> [github\_variables](#output\_github\_variables) | Non-secret repository variables consumed by .github/workflows/deploy.yaml. |
+| <a name="output_github_variables"></a> [github\_variables](#output\_github\_variables) | Non-secret repository variables consumed by .github/workflows/deploy.yaml, including CLEF_GPU_PROFILE. |
 | <a name="output_image_repository"></a> [image\_repository](#output\_image\_repository) | n/a |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Private URL. Before the workflow deploys, this serves only the bootstrap container. |
 | <a name="output_weights_bucket"></a> [weights\_bucket](#output\_weights\_bucket) | n/a |

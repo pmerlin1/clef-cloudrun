@@ -1,0 +1,8 @@
+# Local invocation outputs never belong in a public benchmark commit.
+data/
+__pycache__/
+*.pyc
+*.log
+*.json
+!synthetic-cases.json
+!recorded-results.json

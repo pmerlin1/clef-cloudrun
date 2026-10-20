@@ -6,7 +6,9 @@ github_owner_id      = "12345678"
 invoker_members      = ["user:you@example.com"]
 
 # Confirm GPU availability and quota for this region before deploying:
-# clef uses RTX PRO 6000; clef-flash uses L4.
+# model-default: clef uses RTX PRO 6000; clef-flash uses L4.
+# Use rtx-pro-6000 for the explicit RTX fallback (20 vCPU / 80 GiB).
 region        = "us-central1"
 service_name  = "clef"
 model_variant = "clef"
+gpu_profile   = "model-default"

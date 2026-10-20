@@ -27,6 +27,16 @@ variable "model_variant" {
   }
 }
 
+variable "gpu_profile" {
+  description = "Deployment GPU shape: model-default preserves the model registry; rtx-pro-6000 selects one RTX PRO 6000, 20 vCPU, 80 GiB, without zonal redundancy."
+  type        = string
+  default     = "model-default"
+  validation {
+    condition     = contains(["model-default", "rtx-pro-6000"], var.gpu_profile)
+    error_message = "Use model-default or rtx-pro-6000."
+  }
+}
+
 variable "service_name" {
   description = "Resource prefix; short enough for the runtime and deployer service account IDs."
   type        = string

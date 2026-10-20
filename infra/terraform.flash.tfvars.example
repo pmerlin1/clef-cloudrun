@@ -1,0 +1,19 @@
+# Copy to terraform.tfvars, replace every identity, and keep that file private.
+project_id           = "your-gcp-project"
+github_repository    = "YOUR-OWNER/clef-cloudrun"
+github_repository_id = "123456789"
+github_owner_id      = "12345678"
+invoker_members      = ["user:you@example.com"]
+
+region        = "us-central1"
+service_name  = "clef-flash"
+model_variant = "clef-flash"
+
+# Intended L4 shape: 8 vCPU / 32 GiB, zonal redundancy enabled, about $1.80/h.
+# L4 execution is not yet validated; confirm the matching regional quota first.
+gpu_profile = "model-default"
+
+# To match the hardware used for the recorded Flash tests, explicitly select:
+# gpu_profile = "rtx-pro-6000"
+# That uses 20 vCPU / 80 GiB, no GPU zonal redundancy, about $3.19/h.
+# Both rates include CPU/memory/GPU running time, not storage or other charges.
