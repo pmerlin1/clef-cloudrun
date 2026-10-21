@@ -1,0 +1,39 @@
+ARG WIZ_REGISTRY=registry.os.wiz.io
+FROM ${WIZ_REGISTRY}/python:3.12 AS build
+
+WORKDIR /app
+RUN python3 -m venv /opt/venv
+RUN /opt/venv/bin/pip install --no-cache-dir \
+    fastapi==0.135.1 \
+    uvicorn==0.42.0 \
+    pillow==13.0.0 \
+    opentelemetry-api==1.45.1 \
+    opentelemetry-sdk==1.45.1 \
+    opentelemetry-exporter-otlp-proto-http==1.45.1 \
+    opentelemetry-instrumentation-fastapi==0.66b1
+
+COPY runtime/app.py runtime/media.py runtime/request_body.py runtime/telemetry.py runtime/models.py runtime/settings.py runtime/manifest.json runtime/manifest-flash.json runtime/models.json /app/
+COPY scripts/build_manifest.py /app/build_manifest.py
+RUN /opt/venv/bin/python -m compileall -q -j 0 --invalidation-mode unchecked-hash /app /opt/venv
+
+FROM ${WIZ_REGISTRY}/python:3.12-hardened
+COPY --from=build /opt/venv /opt/venv
+COPY --from=build /app /app
+
+WORKDIR /app
+# Generate immutable /app/build-manifest.json (0444) as root before dropping to USER 65532:65532
+ARG BUILD_ID=development
+ARG SOURCE_REVISION=unknown
+USER 0:0
+RUN ["/opt/venv/bin/python", "/app/build_manifest.py"]
+
+ENV HOME=/tmp \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    CLEF_MOCK_MODEL=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+USER 65532:65532
+EXPOSE 8080
+ENTRYPOINT []
+CMD ["/opt/venv/bin/python", "app.py"]

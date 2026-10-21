@@ -94,3 +94,15 @@ variable "subnet_cidr" {
     error_message = "Use an IPv4 /26 subnet."
   }
 }
+
+variable "labels" {
+  description = "Resource labels conforming to CCSF standards."
+  type        = map(string)
+  default = {
+    department          = "tis"
+    environment         = "dev"
+    data_classification = "internal"
+    internet_exposure   = "internal-only"
+    asset_criticality   = "tier-2"
+  }
+}

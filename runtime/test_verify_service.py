@@ -1,6 +1,6 @@
 """Offline IAM/scaling validation in automatic and explicitly paused modes."""
-from copy import deepcopy
 import unittest
+from copy import deepcopy
 
 from verify_service import validate
 

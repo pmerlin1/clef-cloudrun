@@ -37,7 +37,7 @@ jobs:
         run: |
           : "${PROJECT:?Set GCP_PROJECT_ID from the Terraform outputs}"
           python3 -c "import sys; sys.path.insert(0, 'runtime'); from settings import settings; settings()"
-          python3 -m pip install --disable-pip-version-check pillow==12.3.0
+          python3 -m pip install --disable-pip-version-check pillow==13.0.0
           python3 -m unittest discover -s runtime -p 'test_*.py'
           echo "IMAGE=$REGION-docker.pkg.dev/$PROJECT/$SERVICE/api" >> "$GITHUB_ENV"
       - uses: google-github-actions/auth@v3

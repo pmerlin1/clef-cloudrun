@@ -1,8 +1,8 @@
 """CPU-only tests for refusing fallback bindings and auditing executed kernels."""
-from types import SimpleNamespace
-from concurrent.futures import ThreadPoolExecutor
 import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import fast_path

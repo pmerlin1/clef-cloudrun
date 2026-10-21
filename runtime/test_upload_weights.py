@@ -4,6 +4,7 @@ import io
 import json
 import unittest
 import urllib.error
+from typing import ClassVar
 from unittest.mock import patch
 
 import upload_weights
@@ -11,8 +12,8 @@ import upload_weights
 
 class UploadWeightsTest(unittest.TestCase):
     data = b"small pinned test content"
-    entry = {"name": "model.safetensors", "size": len(data),
-             "sha256": hashlib.sha256(data).hexdigest()}
+    entry: ClassVar[dict] = {"name": "model.safetensors", "size": len(data),
+                             "sha256": hashlib.sha256(data).hexdigest()}
 
     def error(self, code):
         return urllib.error.HTTPError("https://storage.googleapis.com/test", code,

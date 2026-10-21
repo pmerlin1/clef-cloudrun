@@ -1,8 +1,8 @@
 """Require accelerated Qwen kernels and audit their actual inference use."""
-from collections import Counter
-from functools import wraps
 import json
 import threading
+from collections import Counter
+from functools import wraps
 
 
 def check_installation():
@@ -17,7 +17,10 @@ def check_installation():
     torch.backends.cuda.enable_cudnn_sdp(False)
     from causal_conv1d import causal_conv1d_fn, causal_conv1d_update
     from fla.modules import FusedRMSNormGated
-    from fla.ops.gated_delta_rule import chunk_gated_delta_rule, fused_recurrent_gated_delta_rule
+    from fla.ops.gated_delta_rule import (
+        chunk_gated_delta_rule,
+        fused_recurrent_gated_delta_rule,
+    )
 
     if not torch.__version__.startswith("2.11.") or torch.version.cuda != "12.8":
         raise RuntimeError("Fast-path extension requires the pinned PyTorch 2.11 / CUDA 12.8 runtime")

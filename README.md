@@ -162,7 +162,7 @@ python3 scripts/verify.py
 python3 scripts/smoke_test.py --allow-paid-request
 # To send a local PNG/JPEG with one paid request instead:
 python3 -m venv .venv
-.venv/bin/pip install pillow==12.3.0
+.venv/bin/pip install pillow==13.0.0
 .venv/bin/python scripts/smoke_test.py --allow-paid-request --image /path/to/small-image.png
 ```
 
@@ -248,7 +248,7 @@ resource removal is complete. Neither action should be used as an automated test
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install pillow==12.3.0 fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
+.venv/bin/pip install pillow==13.0.0 fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
 .venv/bin/python -m compileall -q runtime scripts
 .venv/bin/python -m unittest discover -s runtime -p 'test_*.py'
 .venv/bin/python -m unittest discover -s benchmarks -p 'test_*.py'

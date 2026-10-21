@@ -1,10 +1,9 @@
 """Score published observations or a future synthetic-fixture run; no network calls."""
 import argparse
-from collections import Counter, defaultdict
 import hashlib
 import json
+from collections import Counter, defaultdict
 from pathlib import Path
-
 
 HERE = Path(__file__).resolve().parent
 CHOICES = {

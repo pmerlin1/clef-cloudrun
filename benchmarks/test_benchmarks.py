@@ -1,12 +1,11 @@
 """Offline checks for fixture provenance, scoring, and incomplete-run rejection."""
-from copy import deepcopy
 import json
-from pathlib import Path
 import unittest
+from copy import deepcopy
+from pathlib import Path
 
 from make_synthetic import build, fingerprint
 from score import score_new_run, score_recorded, validate_cases
-
 
 HERE = Path(__file__).resolve().parent
 

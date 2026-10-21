@@ -1,8 +1,8 @@
 """Turn small inline images into PIL objects for the pinned Clef processor."""
 import base64
 import binascii
-from io import BytesIO
 import re
+from io import BytesIO
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
@@ -22,6 +22,9 @@ def prepare_images(payload):
         raise ValueError("Provide one or two inline images")
     prepared = []
     for value in images:
+        if isinstance(value, Image.Image):
+            prepared.append(value)
+            continue
         match = _DATA_URL.fullmatch(value) if isinstance(value, str) else None
         if match is None:
             raise ValueError("Images must be PNG or JPEG base64 data URLs")

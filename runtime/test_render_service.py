@@ -1,10 +1,10 @@
-from copy import deepcopy
 import os
 import unittest
+from copy import deepcopy
 from unittest.mock import patch
 
-from render_service import needs_release, service
 from models import model
+from render_service import needs_release, service
 from settings import settings
 
 
@@ -42,9 +42,8 @@ class ReleaseTest(unittest.TestCase):
             service("example.com/untrusted@sha256:" + "a" * 64)
 
     def test_project_must_be_explicit(self):
-        with patch.dict(os.environ, {"PROJECT": ""}):
-            with self.assertRaises(ValueError):
-                service("example.com/untrusted@sha256:" + "a" * 64)
+        with patch.dict(os.environ, {"PROJECT": ""}), self.assertRaises(ValueError):
+            service("example.com/untrusted@sha256:" + "a" * 64)
 
     def test_flash_uses_l4_shape_and_pinned_revision(self):
         with patch.dict(os.environ, {"MODEL": "clef-flash", "SERVICE": "clef-flash"}):
@@ -62,9 +61,8 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(env["MODEL_BUCKET"], "example-project-clef-flash-weights")
 
     def test_unknown_model_is_rejected(self):
-        with patch.dict(os.environ, {"MODEL": "unknown-model"}):
-            with self.assertRaisesRegex(ValueError, "MODEL must be one of"):
-                service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "d" * 64)
+        with patch.dict(os.environ, {"MODEL": "unknown-model"}), self.assertRaisesRegex(ValueError, "MODEL must be one of"):
+            service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "d" * 64)
 
     def test_flash_rtx_profile_changes_hardware_and_keeps_pinned_weights(self):
         default = model("clef-flash", "model-default")
@@ -92,9 +90,8 @@ class ReleaseTest(unittest.TestCase):
 
     def test_unknown_or_l4_override_profile_is_rejected(self):
         for profile in ("unknown", "nvidia-l4", "l4", ""):
-            with self.subTest(profile=profile), patch.dict(os.environ, {"GPU_PROFILE": profile}):
-                with self.assertRaisesRegex(ValueError, "GPU_PROFILE must be one of"):
-                    service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "f" * 64)
+            with self.subTest(profile=profile), patch.dict(os.environ, {"GPU_PROFILE": profile}), self.assertRaisesRegex(ValueError, "GPU_PROFILE must be one of"):
+                service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "f" * 64)
 
     def test_custom_service_names_every_resource_consistently(self):
         with patch.dict(os.environ, {"SERVICE": "my-clef", "REGION": "europe-west4"}):

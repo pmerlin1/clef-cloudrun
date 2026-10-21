@@ -1,16 +1,16 @@
 """Pinned local weights with separately measured transfer and SHA-256 phases."""
-from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
-from pathlib import Path
 import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 from google.cloud import storage
 from google.cloud.storage import transfer_manager
-from requests.adapters import HTTPAdapter
-
 from models import model
+from requests.adapters import HTTPAdapter
+from telemetry import get_tracer
 
 FILE_WORKERS = 4
 CANDIDATES = (8, 12, 16, 20)
@@ -91,8 +91,14 @@ def download_set(model_bucket, entries, destination, total_workers):
 
 
 def preload():
-    destination = Path("/tmp/clef-model")
-    destination.mkdir(exist_ok=True)
-    model_bucket = bucket()
-    download_set(model_bucket, manifest(), destination, worker_budget())
-    return str(destination)
+    tracer = get_tracer()
+    with tracer.start_as_current_span("clef.preload") as span:
+        destination = Path("/tmp/clef-model")
+        destination.mkdir(exist_ok=True)
+        model_bucket = bucket()
+        manifest_entries = manifest()
+        span.set_attribute("gen_ai.request.model", os.environ.get("MODEL", "clef"))
+        span.set_attribute("clef.preload.files_count", len(manifest_entries))
+        res = download_set(model_bucket, manifest_entries, destination, worker_budget())
+        span.set_attribute("clef.preload.bytes", res.get("bytes", 0))
+        return str(destination)

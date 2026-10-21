@@ -1,8 +1,8 @@
 """Publish non-secret Terraform outputs as GitHub Actions repository variables."""
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 if len(sys.argv) != 2 or len(sys.argv[1].split("/")) != 2:
