@@ -33,7 +33,12 @@ path, use the [Flash playbook](docs/FLASH.md) and its
   profile disables GPU zonal redundancy and uses 20 vCPU / 80 GiB.
 - A model-specific GPU shape: RTX PRO 6000 with **20 vCPU / 80 GiB RAM** for
   `clef`, or L4 with **8 vCPU / 32 GiB RAM** for `clef-flash`.
-- HTTP concurrency **8**, with at most **two** simultaneous model calls.
+- HTTP concurrency **100**, with one GPU micro-batcher (up to **8** requests for
+  Clef or **16** for Flash, bounded by **8,192 padded tokens** per batch).
+- Bounded admission (**64** queued requests, **15 seconds** queue wait by default),
+  with HTTP **429** and **Retry-After**. Once dispatched, inference is not subject
+  to the queue deadline. A disconnect observed before dispatch removes its work;
+  an already-running CUDA kernel cannot be cancelled safely.
 - Accelerated FLA and causal-conv1d kernels, with actual kernel-call counters.
 - Pinned model revision, file sizes, SHA-256 checksums, and immutable image releases.
 - Read-only runtime access to weights. GitHub authentication uses OIDC, without
@@ -147,8 +152,8 @@ gh workflow run deploy.yaml --ref main --repo OWNER/REPOSITORY \
 
 This must point to this starter's own registry/repository. A new commit without a
 prebuilt image can rebuild even if it changes only documentation. The build pins
-direct dependencies and model files; mutable base tags, apt packages, and
-transitive dependencies mean it is not a byte-for-byte reproducible build.
+direct/transitive Python dependencies and model files; mutable base tags and
+OS packages mean it is not a byte-for-byte reproducible build.
 
 ## 4. Verify, then send one test request
 
@@ -162,7 +167,7 @@ python3 scripts/verify.py
 python3 scripts/smoke_test.py --allow-paid-request
 # To send a local PNG/JPEG with one paid request instead:
 python3 -m venv .venv
-.venv/bin/pip install pillow==12.3.0
+.venv/bin/pip install pillow==13.0.0
 .venv/bin/python scripts/smoke_test.py --allow-paid-request --image /path/to/small-image.png
 ```
 
@@ -246,21 +251,56 @@ resource removal is complete. Neither action should be used as an automated test
 
 ## Local checks and attribution
 
+The application and checks use WizOS builder/runtime images. Log into
+`registry.os.wiz.io` with the existing organization registry credentials first.
+Use `linux/amd64` to match Cloud Run; the local ARM Docker VM encountered an
+illegal-instruction failure in the cryptography/OpenSSL wheel during GCS import.
+
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install pillow==12.3.0 fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
-.venv/bin/python -m compileall -q runtime scripts
-.venv/bin/python -m unittest discover -s runtime -p 'test_*.py'
-.venv/bin/python -m unittest discover -s benchmarks -p 'test_*.py'
-.venv/bin/python scripts/check_adapter.py
+docker build --platform linux/amd64 -f Dockerfile.mock --target checks -t clef-checks:local .
+docker run --rm --platform linux/amd64 --network none clef-checks:local
+docker build --platform linux/amd64 -f Dockerfile.mock --target upstream-check -t clef-upstream:local .
+docker build --platform linux/amd64 -f Dockerfile.mock --target runtime \
+  --build-arg BUILD_ID=local-$(date +%s) --build-arg SOURCE_REVISION=$(git rev-parse HEAD) \
+  -t clef-review:local .
+python3 scripts/verify_telemetry.py
 terraform -chdir=infra fmt -check
 terraform -chdir=infra init -backend=false
 terraform -chdir=infra validate
 ```
 
-These checks do not deploy or run inference. The independent CI workflow runs
-them without cloud credentials. Model/dependency upgrades need a separate GPU
-validation because import checks alone cannot prove CUDA execution.
+The upstream check downloads only checksum-verified Python code and its license,
+then tests the real encoder, collator and answer conversion with CPU tensors. The
+local telemetry loop runs the HTTP service with a synthetic model, Collector and
+Jaeger on random loopback ports; it asserts exact request metrics (including an
+unsampled request), server/encode parentage, batch links, 200/400/429/500 outcomes,
+per-request logs, privacy sentinels and negative controls. It removes its own
+Compose project on exit. Neither check loads weights or invokes a cloud service.
+
+Application dependencies are installed from `requirements-api.lock` and
+`requirements-model.lock` using `--require-hashes`. The CUDA extension is built
+separately from checksum-pinned source. `Dockerfile.kernels` retains Ubuntu 24.04
+for NVIDIA's supported CUDA 12.8 compiler distribution; the shipped application
+builder and runtime are WizOS. Mutable base/APK packages still require fresh
+image scans. A successful CPU fixture does not prove the final CUDA image or
+GPU execution, image correctness, throughput, or Cloud Trace delivery.
+
+### Dedicated two-service project
+
+The `infra-gcp-root` module provisions a shared registry, runtime account, weights
+bucket and VPC for both model services. After its authorized CI apply, configure
+the non-secret `clef_ai.github_variables` output on the deployment repository.
+`CLEF_RESOURCE_PREFIX=clef` activates shared-resource mode: the workflow's `model`
+input selects the matching `clef` or `clef-flash` service. The explicit
+`CLEF_WEIGHTS_BUCKET`, `CLEF_VPC_NETWORK` and `CLEF_VPC_SUBNET` values must match
+the Terraform output. The standalone `infra/` starter retains service-prefixed
+defaults and its existing `configure_github.py` flow.
+
+Telemetry starts before ASGI middleware construction. Local verification uses
+OTLP/HTTP; Cloud Run uses the supported native Cloud Trace and Cloud Monitoring
+exporters with the runtime service account's trace-agent/metric-writer roles.
+`OTEL_SDK_DISABLED=true` disables telemetry. Missing export configuration is logged.
+Cloud sink authentication and field preservation require separate live verification.
 
 See [third-party notices](THIRD_PARTY.md), [validation](docs/VALIDATION.md), and
 [benchmarks](benchmarks/README.md). This is a community recipe, not an official

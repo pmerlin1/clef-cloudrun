@@ -1,0 +1,41 @@
+ARG WIZ_REGISTRY=registry.os.wiz.io
+FROM ${WIZ_REGISTRY}/python:3.12 AS build
+WORKDIR /app
+RUN python3 -m venv /opt/venv
+COPY runtime/requirements-api.lock /app/requirements-api.lock
+RUN /opt/venv/bin/pip install --no-cache-dir --require-hashes -r requirements-api.lock && /opt/venv/bin/pip check
+COPY runtime/app.py runtime/media.py runtime/request_body.py runtime/telemetry.py runtime/mock_model.py runtime/build_manifest.py /app/
+RUN /opt/venv/bin/python -m compileall -q --invalidation-mode unchecked-hash /app /opt/venv
+
+FROM build AS checks
+COPY runtime/requirements-checks.lock /app/requirements-checks.lock
+RUN /opt/venv/bin/pip install --no-cache-dir --require-hashes -r requirements-checks.lock
+COPY runtime /src/runtime
+COPY scripts /src/scripts
+COPY benchmarks /src/benchmarks
+WORKDIR /src
+ENV PATH="/opt/venv/bin:$PATH" HOME=/tmp OTEL_SDK_DISABLED=true PROJECT=example-clef-project
+USER 65532:65532
+ENTRYPOINT []
+CMD ["python", "scripts/check_local.py"]
+
+FROM checks AS upstream-check
+USER 0:0
+RUN /opt/venv/bin/pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.11.0
+USER 65532:65532
+RUN ["python", "scripts/check_upstream.py"]
+
+FROM ${WIZ_REGISTRY}/python:3.12-hardened AS runtime
+COPY --from=build /opt/venv /opt/venv
+COPY --from=build /app /app
+WORKDIR /app
+ARG BUILD_ID=local-development
+ARG SOURCE_REVISION=unknown
+USER 0:0
+RUN ["/opt/venv/bin/python", "/app/build_manifest.py"]
+ENV HOME=/tmp PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 CLEF_MOCK_MODEL=1 PATH="/opt/venv/bin:$PATH"
+USER 65532:65532
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD ["/opt/venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2)"]
+ENTRYPOINT []
+CMD ["/opt/venv/bin/python", "app.py"]

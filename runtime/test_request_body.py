@@ -1,5 +1,6 @@
 import unittest
-from request_body import read_bounded_body, RequestTooLarge
+
+from request_body import RequestTooLarge, read_bounded_body
 
 
 class RequestBodyTest(unittest.IsolatedAsyncioTestCase):

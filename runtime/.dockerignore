@@ -2,7 +2,12 @@
 !Dockerfile
 !Dockerfile.kernels
 !requirements.txt
+!requirements-api.lock
+!requirements-model.lock
 !build_kernel.py
+!build_manifest.py
+!precompile_triton.py
+!telemetry.py
 !app.py
 !preload.py
 !fast_path.py

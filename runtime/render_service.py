@@ -1,8 +1,9 @@
 """Render the selected model's GPU revision specification and detect identical releases."""
 import json
-from copy import deepcopy
 import re
 import sys
+from copy import deepcopy
+
 from settings import settings
 
 
@@ -26,9 +27,9 @@ def service(image):
             "run.googleapis.com/cpu-throttling": "false",
             "run.googleapis.com/vpc-access-egress": "all-traffic",
             "run.googleapis.com/network-interfaces": json.dumps([
-                {"network": config["service"], "subnetwork": config["service"]}]),
+                {"network": config["network"], "subnetwork": config["subnet"]}]),
         }}, "spec": {
-            "containerConcurrency": 8, "timeoutSeconds": 900,
+            "containerConcurrency": 100, "timeoutSeconds": 900,
             "serviceAccountName": config["runtime_account"],
             "nodeSelector": {"run.googleapis.com/accelerator": config["accelerator"]},
             "containers": [{
@@ -79,7 +80,8 @@ def needs_release(actual, desired):
 if __name__ == "__main__":
     desired = service(sys.argv[1])
     if len(sys.argv) == 3:
-        actual = json.load(open(sys.argv[2]))
+        with open(sys.argv[2]) as f:
+            actual = json.load(f)
         print("true" if needs_release(actual, desired) else "false")
     else:
         # JSON is valid YAML; no additional rendering dependency is needed.

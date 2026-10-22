@@ -94,3 +94,19 @@ variable "subnet_cidr" {
     error_message = "Use an IPv4 /26 subnet."
   }
 }
+
+variable "labels" {
+  description = "Resource labels conforming to CCSF standards."
+  type        = map(string)
+  default = {
+    department          = "gsa-technology"
+    department_code     = "tis"
+    division            = "tis-infrastructure-and-operations"
+    business_owner      = "paul-merlin-at-sfgov-org"
+    cloud_type          = "commercial"
+    environment         = "dev"
+    data_classification = "internal"
+    internet_exposure   = "internal-only"
+    asset_criticality   = "tier-2"
+  }
+}

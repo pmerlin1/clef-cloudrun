@@ -18,3 +18,4 @@ RUN python3 -m pip install --no-cache-dir ninja==1.13.0 wheel==0.46.3 setuptools
 
 FROM scratch
 COPY --from=kernels /wheels /wheels
+USER 65532:65532

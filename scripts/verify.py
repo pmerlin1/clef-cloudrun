@@ -2,12 +2,12 @@
 import argparse
 import datetime
 import json
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / "runtime"))
@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory() as directory:
     options = ["--paused"] if args.paused else []
     subprocess.run([sys.executable, str(root / "runtime" / "verify_service.py"), *paths, *options], check=True)
 
-now = datetime.datetime.now(datetime.timezone.utc)
+now = datetime.datetime.now(datetime.UTC)
 params = {
     "filter": 'metric.type="run.googleapis.com/container/instance_count" '
               f'AND resource.labels.service_name="{config["service"]}" '

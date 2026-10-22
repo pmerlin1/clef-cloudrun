@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 
-
 GPU_PROFILES = {
     "rtx-pro-6000": {
         "accelerator": "nvidia-rtx-pro-6000",

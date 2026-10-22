@@ -1,13 +1,13 @@
 """Offline checks for paid-window safety; never authenticate or contact Google."""
 import copy
-from contextlib import ExitStack, redirect_stdout, redirect_stderr
 import hashlib
 import importlib.util
 import io
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from contextlib import ExitStack, redirect_stderr, redirect_stdout
+from pathlib import Path
 from unittest import mock
 
 SPEC = importlib.util.spec_from_file_location("benchmark_run", Path(__file__).with_name("run.py"))

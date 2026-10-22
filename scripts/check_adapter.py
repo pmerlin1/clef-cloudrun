@@ -1,17 +1,17 @@
 """Exercise HTTP adapter validation with a fake model; never load weights/CUDA."""
 import asyncio
 import base64
-from io import BytesIO
 import json
-from pathlib import Path
 import sys
+from io import BytesIO
+from pathlib import Path
 
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runtime"))
 import app
-from media import prepare_images
 import preload
+from media import prepare_images
 
 
 class Request:

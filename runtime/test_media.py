@@ -1,11 +1,10 @@
 """Bounded image transport checks without loading the GPU model."""
 import base64
-from io import BytesIO
 import unittest
-
-from PIL import Image
+from io import BytesIO
 
 from media import prepare_images
+from PIL import Image
 
 
 def data_url(color, size=(32, 32)):

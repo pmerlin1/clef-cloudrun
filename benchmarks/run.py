@@ -10,7 +10,6 @@ import datetime as dt
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import signal
 import subprocess
@@ -20,12 +19,13 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
 
 def utc():
-    return dt.datetime.now(dt.timezone.utc).isoformat()
+    return dt.datetime.now(dt.UTC).isoformat()
 
 
 def token(kind):
@@ -158,7 +158,7 @@ def load_dataset(path, model):
             raise ValueError("Case IDs must be unique, nonempty strings")
         ids.add(case_id)
         if not isinstance(case.get("gold"), dict):
-            raise ValueError("Each case needs gold answers")
+            raise TypeError("Each case needs gold answers")
         payload = case.get("payload")
         if not isinstance(payload, dict) or "state" not in payload or not isinstance(payload.get("questions"), dict):
             raise ValueError("Each case needs a state/questions payload")
@@ -260,7 +260,7 @@ def main(argv=None):
         stop.set()
         try:
             pause()
-        except BaseException as exc:
+        except Exception as exc:  # noqa: BLE001
             output["watchdog_error"] = type(exc).__name__
             save_cleanup()
             print("Watchdog pause failed; final cleanup will retry", flush=True)
@@ -314,7 +314,7 @@ def main(argv=None):
                     pause()
                     cleanup_error = None
                     break
-                except BaseException as exc:
+                except Exception as exc:  # noqa: BLE001
                     cleanup_error = exc
                     output.setdefault("cleanup_attempt_errors", []).append(
                         {"attempt": attempt, "error": type(exc).__name__})
@@ -327,7 +327,7 @@ def main(argv=None):
                         print("Pause verification failed; refreshing access and retrying cleanup", flush=True)
                         try:
                             session.refresh_access()
-                        except BaseException as refresh_error:
+                        except Exception as refresh_error:  # noqa: BLE001
                             output.setdefault("cleanup_refresh_errors", []).append(type(refresh_error).__name__)
             if cleanup_error is not None:
                 if window["resume_attempted"]:
