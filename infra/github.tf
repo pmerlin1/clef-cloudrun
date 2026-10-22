@@ -19,12 +19,13 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.ref"                 = "assertion.ref"
     "attribute.workflow_ref"        = "assertion.workflow_ref"
   }
-  attribute_condition = join(" && ", [
-    "assertion.repository_id == '${var.github_repository_id}'",
-    "assertion.repository_owner_id == '${var.github_owner_id}'",
-    "assertion.ref == 'refs/heads/main'",
-    "assertion.workflow_ref == '${var.github_repository}/.github/workflows/deploy.yaml@refs/heads/main'",
-  ])
+  attribute_condition = <<-EOT
+    assertion.sub == 'repo:${var.github_repository}:ref:refs/heads/main' &&
+    assertion.repository_id == '${var.github_repository_id}' &&
+    assertion.repository_owner_id == '${var.github_owner_id}' &&
+    assertion.ref == 'refs/heads/main' &&
+    assertion.workflow_ref == '${var.github_repository}/.github/workflows/deploy.yaml@refs/heads/main'
+  EOT
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
   }

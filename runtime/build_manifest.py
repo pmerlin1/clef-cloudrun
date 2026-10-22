@@ -4,6 +4,7 @@ import json
 import os
 import platform
 import re
+import shutil
 from importlib import metadata
 from pathlib import Path
 
@@ -38,6 +39,16 @@ def build_manifest(build_id, source_revision):
 
 
 if __name__ == "__main__":
+    # A deployed image does not install packages. Remove both the venv installer
+    # and the base image's installer/ensurepip archives and their vendored copies.
+    # The checks target retains its build tools; this runs in final images only.
+    for site in (Path("/opt/venv/lib/python3.12/site-packages"), Path("/usr/lib/python3.12/site-packages")):
+        for item in site.glob("pip*"):
+            if item.name == "pip" or item.name.startswith("pip-"):
+                shutil.rmtree(item) if item.is_dir() else item.unlink()
+    ensurepip = Path("/usr/lib/python3.12/ensurepip")
+    if ensurepip.is_dir():
+        shutil.rmtree(ensurepip)
     manifest = build_manifest(
         os.environ.get("BUILD_ID", "development"),
         os.environ.get("SOURCE_REVISION", "unknown"),

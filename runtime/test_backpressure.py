@@ -107,9 +107,9 @@ class BackpressureTest(unittest.IsolatedAsyncioTestCase):
             body = json.loads(response.body.decode())
             self.assertIn("Server busy; retry after", body["detail"])
 
-            # Verify that the item in the queue is marked cancelled and excluded from active qsize
-            self.assertEqual(len(app.batch_queue._deque), 1)
-            self.assertTrue(app.batch_queue._deque[0].cancelled)
+            # Remove expired records immediately so cancelled payloads cannot
+            # accumulate behind a long-running batch.
+            self.assertEqual(len(app.batch_queue._deque), 0)
             self.assertEqual(app.batch_queue.qsize(), 0)
 
             # Enqueue a valid non-cancelled item and verify get_batch skips the cancelled item

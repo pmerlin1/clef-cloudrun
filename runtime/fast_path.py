@@ -1,8 +1,19 @@
 """Require accelerated Qwen kernels and audit their actual inference use."""
 import json
+import os
+import shutil
 import threading
 from collections import Counter
 from functools import wraps
+from pathlib import Path
+
+
+def seed_triton_cache():
+    """Use the CPU-compiled driver wrapper in the writable runtime cache."""
+    source = Path("/opt/triton-cache")
+    destination = Path(os.environ.get("TRITON_CACHE_DIR", "/tmp/triton-cache"))
+    if source.is_dir() and source != destination:
+        shutil.copytree(source, destination, dirs_exist_ok=True)
 
 
 def check_installation():

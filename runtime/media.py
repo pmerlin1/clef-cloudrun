@@ -43,6 +43,6 @@ def prepare_images(payload):
                         or height > MAX_IMAGE_SIDE or width * height > MAX_IMAGE_PIXELS):
                     raise ValueError("Image dimensions must be 16–512 pixels per side")
                 prepared.append(ImageOps.exif_transpose(image).convert("RGB"))
-        except (binascii.Error, UnidentifiedImageError, OSError) as exc:
+        except (binascii.Error, UnidentifiedImageError, Image.DecompressionBombError, OSError) as exc:
             raise ValueError("Invalid image data") from exc
     return {**payload, "images": prepared}

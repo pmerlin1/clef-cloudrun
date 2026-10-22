@@ -27,7 +27,7 @@ def service(image):
             "run.googleapis.com/cpu-throttling": "false",
             "run.googleapis.com/vpc-access-egress": "all-traffic",
             "run.googleapis.com/network-interfaces": json.dumps([
-                {"network": config["service"], "subnetwork": config["service"]}]),
+                {"network": config["network"], "subnetwork": config["subnet"]}]),
         }}, "spec": {
             "containerConcurrency": 100, "timeoutSeconds": 900,
             "serviceAccountName": config["runtime_account"],

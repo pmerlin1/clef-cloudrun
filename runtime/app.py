@@ -1,7 +1,4 @@
-"""Bounded text/image Clef API with GPU micro-batching and 429 Retry-After backpressure.
-
-Cloud Run enforces caller IAM before this app.
-"""
+"""Bounded Clef API. Cloud Run enforces caller IAM before this application."""
 
 import asyncio
 import json
@@ -12,7 +9,7 @@ import sys
 import threading
 import time
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -21,39 +18,59 @@ from fastapi import FastAPI, HTTPException, Request
 from media import prepare_images
 from request_body import RequestTooLarge, read_bounded_body
 from starlette.concurrency import run_in_threadpool
+from starlette.requests import ClientDisconnect
 from starlette.responses import JSONResponse
 from telemetry import (
+    OUTCOME_CANCELLED,
     OUTCOME_CONTEXT_EXCEEDED,
     OUTCOME_ERROR,
     OUTCOME_RATE_LIMITED,
     OUTCOME_SUCCESS,
     OUTCOME_VALIDATION_ERROR,
+    batch_trace_context,
     configure_logging,
     get_current_span,
     get_tracer,
     init_telemetry,
+    record_request,
     set_span_outcome,
+    shutdown_telemetry,
 )
 
-model = processor = infer = None
+model = processor = None
 collate_records_fn = systemone_answer_fn = encode_record_fn = None
+inference_context = nullcontext
 fast_path = None
+# Compatibility injection for the credential-free adapter check. Production and
+# the container fixture use the same collation/forward/serialization path below.
+inference = None
 gpu_lock = threading.Lock()
+encode_lock = threading.Lock()
+logger = logging.getLogger("clef")
 
 MODEL_NAME = os.environ.get("MODEL", "clef")
 MAX_BATCH_SIZE = 16 if MODEL_NAME == "clef-flash" else 8
 MAX_BATCH_PADDED_TOKENS = 8192
 MAX_CONTEXT_TOKENS = 2048
-
 CLEF_MAX_QUEUE_DEPTH = int(os.environ.get("CLEF_MAX_QUEUE_DEPTH", "64"))
 CLEF_MAX_QUEUE_WAIT_SECONDS = float(os.environ.get("CLEF_MAX_QUEUE_WAIT_SECONDS", "15.0"))
+if CLEF_MAX_QUEUE_DEPTH < 1 or not 0 < CLEF_MAX_QUEUE_WAIT_SECONDS <= 900:
+    raise ValueError("Queue depth must be positive and queue wait must be in (0, 900] seconds")
 
-INITIAL_AVG_BATCH_SECONDS = 0.16 if MODEL_NAME == "clef-flash" else 0.25
-INITIAL_AVG_IMAGE_BATCH_SECONDS = 1.5
-
-avg_batch_seconds = INITIAL_AVG_BATCH_SECONDS
-avg_batch_seconds_image = INITIAL_AVG_IMAGE_BATCH_SECONDS
+avg_batch_seconds = 0.16 if MODEL_NAME == "clef-flash" else 0.25
+avg_batch_seconds_image = 1.5
 in_flight_batches = 0
+in_flight_has_images = False
+
+
+class QueueExpired(Exception):
+    """Work expired before it was dispatched to the GPU."""
+
+
+class InputRejected(Exception):
+    def __init__(self, message, outcome=OUTCOME_VALIDATION_ERROR):
+        super().__init__(message)
+        self.outcome = outcome
 
 
 class QueueItem:
@@ -63,7 +80,29 @@ class QueueItem:
         self.future = future
         self.has_images = has_images
         self.enqueued_at = time.monotonic()
+        self.deadline = self.enqueued_at + CLEF_MAX_QUEUE_WAIT_SECONDS
         self.cancelled = False
+        self.started = asyncio.Event()
+        self.queue_wait_ms = 0.0
+        span = get_current_span()
+        self.span_context = span.get_span_context() if span else None
+
+
+def token_length(item):
+    return len(item.record.input_ids) if item.record is not None else 0
+
+
+def split_batch(items, max_batch_size, max_padded_tokens):
+    batch, overflow = [], []
+    max_len = 0
+    for item in sorted(items, key=token_length):
+        new_max = max(max_len, token_length(item))
+        if len(batch) < max_batch_size and (len(batch) + 1) * new_max <= max_padded_tokens:
+            batch.append(item)
+            max_len = new_max
+        else:
+            overflow.append(item)
+    return batch, overflow
 
 
 class MicroBatchQueue:
@@ -71,48 +110,43 @@ class MicroBatchQueue:
         self._deque = deque()
         self._event = asyncio.Event()
 
+    def active(self):
+        return [item for item in self._deque if not item.cancelled]
+
     def qsize(self):
-        return sum(1 for item in self._deque if not item.cancelled)
+        return len(self.active())
 
     def put_nowait(self, item):
+        if token_length(item) > MAX_BATCH_PADDED_TOKENS:
+            raise ValueError("Record exceeds the batch token budget")
         self._deque.append(item)
         self._event.set()
+
+    def discard(self, item):
+        item.cancelled = True
+        if item in self._deque:
+            self._deque.remove(item)
 
     async def get_batch(self, max_batch_size, max_padded_tokens):
         while True:
             while not self._deque:
                 self._event.clear()
                 await self._event.wait()
-
             active = []
-            while self._deque:
-                item = self._deque.popleft()
-                if not item.cancelled:
-                    active.append(item)
-
-            if not active:
-                continue
-
-            active.sort(key=lambda it: len(it.record.input_ids) if hasattr(it.record, "input_ids") else 0)
-
-            batch = []
-            overflow = []
-            max_len = 0
-            for item in active:
-                tok_len = len(item.record.input_ids) if hasattr(item.record, "input_ids") else 0
-                new_max = max(max_len, tok_len)
-                if len(batch) < max_batch_size and (len(batch) + 1) * new_max <= max_padded_tokens:
-                    batch.append(item)
-                    max_len = new_max
+            now = time.monotonic()
+            for item in self._deque:
+                if item.cancelled:
+                    continue
+                if item.deadline <= now:
+                    item.cancelled = True
+                    if item.future is not None and not item.future.done():
+                        item.future.set_exception(QueueExpired())
                 else:
-                    overflow.append(item)
-
-            for item in reversed(overflow):
-                self._deque.appendleft(item)
-            if self._deque:
-                self._event.set()
-
-            return batch
+                    active.append(item)
+            batch, overflow = split_batch(active, max_batch_size, max_padded_tokens)
+            self._deque = deque(overflow)
+            if batch:
+                return batch
 
 
 batch_queue = MicroBatchQueue()
@@ -120,330 +154,322 @@ worker_task = None
 
 
 def estimate_wait_seconds(has_images=False):
-    q = batch_queue.qsize()
-    eff_avg = avg_batch_seconds_image if has_images else avg_batch_seconds
-    in_flight = 1 if in_flight_batches > 0 else 0
-    batches_needed = math.ceil(q / MAX_BATCH_SIZE)
-    return (batches_needed + in_flight) * eff_avg
+    # Price the work ahead of this caller, including image batches and padding.
+    # A text caller behind image work must not inherit the text-only estimate.
+    remaining = batch_queue.active()
+    estimate = 0.0
+    if in_flight_batches:
+        estimate += avg_batch_seconds_image if in_flight_has_images or has_images else avg_batch_seconds
+    while remaining:
+        batch, remaining = split_batch(remaining, MAX_BATCH_SIZE, MAX_BATCH_PADDED_TOKENS)
+        if not batch:
+            return CLEF_MAX_QUEUE_WAIT_SECONDS + 1
+        estimate += avg_batch_seconds_image if has_images or any(it.has_images for it in batch) else avg_batch_seconds
+    return estimate
 
 
 def calculate_retry_after(has_images=False):
-    estimated_seconds = estimate_wait_seconds(has_images=has_images)
-    return max(1, min(30, math.ceil(estimated_seconds)))
+    return max(1, min(30, math.ceil(estimate_wait_seconds(has_images))))
 
 
 def run_gpu_batch_sync(valid_items):
     if inference is not None and collate_records_fn is None:
         return [inference(item.payload) for item in valid_items]
-
-    with gpu_lock:
+    # This is the pinned upstream systemone() algorithm applied to already
+    # encoded records. systemone_answer() serializes ONE question; it is not a
+    # model forward function. Inference mode is thread-local and belongs here.
+    with gpu_lock, inference_context():
         if fast_path is not None:
             fast_path.begin_inference()
-        records_to_collate = [
-            it.payload if collate_records_fn is _mock_collate else it.record
-            for it in valid_items
-        ]
-        batch = collate_records_fn(records_to_collate)
-        results = systemone_answer_fn(model, processor, batch, max_length=MAX_CONTEXT_TOKENS)
+        records = [item.record for item in valid_items]
+        device = next(model.parameters()).device
+        batch = collate_records_fn(records, processor.tokenizer.pad_token_id, device)
+        logits = model(batch)
+        results = []
+        for item, record_logits in zip(valid_items, logits, strict=True):
+            answers = {
+                question.question_id: systemone_answer_fn(
+                    item.payload["questions"][question.question_id],
+                    dict(zip(question.option_ids, values.float().softmax(-1).tolist(), strict=True)),
+                )
+                for question, values in zip(item.record.questions, record_logits, strict=True)
+            }
+            results.append({
+                "model": item.payload["model"], "answers": answers,
+                "usage": {"input_tokens": token_length(item), "output_tokens": 0},
+            })
         if fast_path is not None:
             fast_path.verify_inference()
-        try:
-            import torch
-            if torch.cuda.is_available():
-                print(f"Clef batch inference completed: batch_size={len(valid_items)}; "
-                      f"peak_gpu_allocated_bytes={torch.cuda.max_memory_allocated()}", flush=True)
-        except ImportError:
-            pass
         return results
 
 
 async def gpu_batch_worker():
-    global in_flight_batches, avg_batch_seconds, avg_batch_seconds_image
-    tracer = get_tracer()
+    global in_flight_batches, in_flight_has_images, avg_batch_seconds, avg_batch_seconds_image
     while True:
         try:
-            batch_items = await batch_queue.get_batch(MAX_BATCH_SIZE, MAX_BATCH_PADDED_TOKENS)
-            valid_items = [it for it in batch_items if not it.cancelled]
-            if not valid_items:
-                continue
-
+            items = await batch_queue.get_batch(MAX_BATCH_SIZE, MAX_BATCH_PADDED_TOKENS)
+            # No await between deadline checking and dispatch/start notification.
+            # The queue timeout ends here; running kernels have no queue deadline.
             in_flight_batches = 1
-            has_images = any(it.has_images for it in valid_items)
+            in_flight_has_images = any(item.has_images for item in items)
             now = time.monotonic()
-            for it in valid_items:
-                it.queue_wait_ms = (now - it.enqueued_at) * 1000.0
-
-            with tracer.start_as_current_span("clef.infer_batch") as span:
+            for item in items:
+                item.queue_wait_ms = (now - item.enqueued_at) * 1000
+                item.started.set()
+            with get_tracer().start_as_current_span(
+                "clef.infer_batch", **batch_trace_context(items),
+                record_exception=False, set_status_on_exception=False,
+            ) as span:
                 span.set_attribute("gen_ai.request.model", MODEL_NAME)
-                span.set_attribute("clef.batch_size", len(valid_items))
-                max_tokens = max((len(it.record.input_ids) if hasattr(it.record, "input_ids") else 0)
-                                 for it in valid_items)
-                span.set_attribute("clef.max_tokens", max_tokens)
-
-                started = time.monotonic()
+                span.set_attribute("clef.batch_size", len(items))
+                span.set_attribute("clef.max_tokens", max(map(token_length, items)))
+                began = time.monotonic()
                 try:
-                    results = await run_in_threadpool(run_gpu_batch_sync, valid_items)
-                    elapsed = time.monotonic() - started
-                    if has_images:
+                    # Separate from Starlette's CPU validation thread limiter.
+                    results = await asyncio.to_thread(run_gpu_batch_sync, items)
+                    if len(results) != len(items):
+                        raise RuntimeError("Inference result count mismatch")
+                    elapsed = time.monotonic() - began
+                    if in_flight_has_images:
                         avg_batch_seconds_image = 0.2 * elapsed + 0.8 * avg_batch_seconds_image
                     else:
                         avg_batch_seconds = 0.2 * elapsed + 0.8 * avg_batch_seconds
-
-                    for item, res in zip(valid_items, results):
-                        if not item.cancelled and not item.future.done():
-                            item.future.set_result(res)
-                    logging.getLogger("clef").info(
-                        "Batch inference finished: batch_size=%d",
-                        len(valid_items),
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    import traceback
-                    traceback.print_exc()
-                    span.record_exception(exc)
-                    for item in valid_items:
-                        if not item.cancelled and not item.future.done():
-                            item.future.set_exception(exc)
+                    set_span_outcome(span, OUTCOME_SUCCESS)
+                    for item, result in zip(items, results, strict=True):
+                        if not item.future.done():
+                            item.future.set_result(result)
+                except Exception:  # noqa: BLE001 - GPU errors must never expose payloads.
+                    set_span_outcome(span, OUTCOME_ERROR)
+                    logger.error("Batch inference failed", extra={"clef.outcome": OUTCOME_ERROR})
+                    for item in items:
+                        if not item.future.done():
+                            item.future.set_exception(RuntimeError("Inference failed"))
                 finally:
                     in_flight_batches = 0
         except asyncio.CancelledError:
-            break
-        except Exception as worker_exc:  # noqa: BLE001
-            print(f"Error in gpu_batch_worker: {worker_exc}", file=sys.stderr, flush=True)
-            await asyncio.sleep(0.05)
+            return
 
 
 def ensure_worker_started():
     global worker_task
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        return
     if worker_task is None or worker_task.done():
-        worker_task = loop.create_task(gpu_batch_worker())
-
-
-def _mock_collate(records):
-    return records
-
-
-def _mock_answer(m, p, batch, max_length=2048):
-    return [
-        {
-            "accepted": it.get("state", "ok") if isinstance(it, dict) else "ok",
-            "image_modes": [img.mode for img in it.get("images", [])] if isinstance(it, dict) else [],
-        }
-        for it in batch
-    ]
-
-
-def _mock_encode(tokenizer, payload, max_length=1_000_000, processor=None):
-    return SimpleNamespace(input_ids=[0] * 16)
+        worker_task = asyncio.create_task(gpu_batch_worker())
 
 
 @asynccontextmanager
 async def lifespan(app):
-    global model, processor, infer, fast_path, worker_task
+    global model, processor, fast_path, inference_context
     global collate_records_fn, systemone_answer_fn, encode_record_fn
-
-    configure_logging()
-    init_telemetry(app)
-    tracer = get_tracer()
-
     if os.environ.get("CLEF_MOCK_MODEL", "false").lower() in ("true", "1", "yes"):
-        with tracer.start_as_current_span("clef.preload"):
-            pass
-        model = SimpleNamespace(name=MODEL_NAME)
-        processor = SimpleNamespace(tokenizer=SimpleNamespace())
-        collate_records_fn = _mock_collate
-        systemone_answer_fn = _mock_answer
-        encode_record_fn = _mock_encode
+        from mock_model import (
+            MockModel,
+            collate_records,
+            encode_record,
+            systemone_answer,
+        )
+        model = MockModel()
+        processor = SimpleNamespace(tokenizer=SimpleNamespace(pad_token_id=0))
+        collate_records_fn, encode_record_fn, systemone_answer_fn = collate_records, encode_record, systemone_answer
     else:
-        from fast_path import FastPathAudit, require_fast_path
-        require_fast_path()
+        import torch
+        from fast_path import FastPathAudit, require_fast_path, seed_triton_cache
         from preload import preload
+        seed_triton_cache()
+        require_fast_path()
         path = preload()
         sys.path.insert(0, path)
         import joint_schema_model
-        load_release_model = joint_schema_model.load_release_model
-        systemone = joint_schema_model.systemone
         collate_records_fn = joint_schema_model.collate_records
         systemone_answer_fn = joint_schema_model.systemone_answer
         encode_record_fn = joint_schema_model.encode_record
-
-        model, processor = load_release_model(path, device="cuda", local_files_only=True)
+        inference_context = torch.inference_mode
+        model, processor = joint_schema_model.load_release_model(path, device="cuda", local_files_only=True)
         fast_path = FastPathAudit(model)
-        infer = systemone
-
-        # Free /tmp/clef-model/*.safetensors after load_release_model()
-        for sf in Path(path).glob("*.safetensors"):
-            try:
-                sf.unlink()
-            except OSError:
-                pass
-
-        # Warmup pass so Triton compiles GPU kernels during startup probe
-        try:
-            warmup_payload = {
-                "model": MODEL_NAME,
-                "state": "warmup",
-                "questions": {"q": {"type": "noul"}},
-            }
-            warmup_rec = encode_record_fn(
-                processor.tokenizer, warmup_payload, max_length=1_000_000, processor=processor
-            )
-            warmup_batch = collate_records_fn([warmup_rec])
-            fast_path.begin_inference()
-            systemone_answer_fn(model, processor, warmup_batch, max_length=MAX_CONTEXT_TOKENS)
-            fast_path.verify_inference()
-        except Exception as warmup_exc:  # noqa: BLE001
-            print(f"Warning: Clef warmup pass failed: {warmup_exc}", file=sys.stderr, flush=True)
-
-    loop = asyncio.get_running_loop()
-    worker_task = loop.create_task(gpu_batch_worker())
-    yield
-    if worker_task:
-        worker_task.cancel()
-        try:
+        for weights in Path(path).glob("*.safetensors"):
+            weights.unlink()
+        # Dropping loaded shard files is safe after the tensors reside on GPU.
+        # Model Python code/config remains available for the running process.
+        warmup_payload = {"model": MODEL_NAME, "state": "warmup", "questions": {"q": {"type": "noul"}}}
+        warmup_record = encode_record_fn(processor.tokenizer, warmup_payload, max_length=1_000_000, processor=processor)
+        # A failed warmup must fail readiness, not silently publish a broken GPU.
+        run_gpu_batch_sync([QueueItem(warmup_record, warmup_payload, None)])
+    ensure_worker_started()
+    try:
+        yield
+    finally:
+        if worker_task:
+            worker_task.cancel()
             await worker_task
-        except asyncio.CancelledError:
-            pass
+        shutdown_telemetry()
 
 
 app = FastAPI(lifespan=lifespan)
-inference = None
 
 
 @app.get("/healthz")
 def health():
-    return {"ready": model is not None, "model": MODEL_NAME}
+    return JSONResponse({"ready": model is not None, "model": MODEL_NAME}, status_code=200 if model is not None else 503)
 
 
 def validate_questions(questions):
     if not isinstance(questions, dict) or not 1 <= len(questions) <= 16:
         raise ValueError("Provide 1 to 16 questions")
-    for q in questions.values():
-        if not isinstance(q, dict):
-            raise TypeError("Questions must be objects")
-        kind = q.get("type")
-        criteria = q.get("criteria")
+    for key, question in questions.items():
+        if not isinstance(key, str) or not key or not isinstance(question, dict):
+            raise ValueError("Questions must be named objects")
+        kind, criteria = question.get("type"), question.get("criteria")
         if kind not in ("choice", "score", "noul"):
             raise ValueError("Unsupported question type")
         if kind == "choice" and (not isinstance(criteria, dict) or not 1 <= len(criteria) <= 32):
             raise ValueError("choice requires 1 to 32 named options")
         if kind == "score" and (not isinstance(criteria, list) or not 1 <= len(criteria) <= 32):
             raise ValueError("score requires 1 to 32 descriptions")
+        if kind == "noul" and criteria is not None and (not isinstance(criteria, dict) or not set(criteria) <= {"true", "false"}):
+            raise ValueError("noul criteria must be an object containing true and/or false")
+
+
+def reject_nonfinite(value):
+    raise ValueError("Non-finite JSON number")
+
+
+def validate_and_encode(body):
+    with get_tracer().start_as_current_span("clef.encode", record_exception=False, set_status_on_exception=False) as span:
+        span.set_attribute("gen_ai.request.model", MODEL_NAME)
+        try:
+            payload = json.loads(body, parse_constant=reject_nonfinite)
+            if not isinstance(payload, dict) or "state" not in payload:
+                raise ValueError("Provide an object with model, state and questions")
+            if payload.get("model") != MODEL_NAME:
+                raise ValueError(f"model must be {MODEL_NAME}")
+            if any(key in payload for key in ("videos", "media_kwargs")):
+                raise ValueError("Videos and media overrides are not supported")
+            validate_questions(payload.get("questions"))
+            payload = prepare_images(payload)
+            span.set_attribute("clef.questions.count", len(payload["questions"]))
+            span.set_attribute("clef.images.count", len(payload.get("images", [])))
+            if processor is not None and encode_record_fn is not None:
+                # Tokenizer/processor internals are mutable. CPU validation can
+                # run while inference is busy without racing this shared object.
+                with encode_lock:
+                    encoded = encode_record_fn(processor.tokenizer, payload, max_length=1_000_000, processor=processor)
+            else:
+                encoded = SimpleNamespace(input_ids=[0] * 16)
+            span.set_attribute("clef.input_tokens", len(encoded.input_ids))
+            if len(encoded.input_ids) > MAX_CONTEXT_TOKENS:
+                raise InputRejected("Input exceeds the 2048-token context; shorten the state, schema, or images", OUTCOME_CONTEXT_EXCEEDED)
+        except InputRejected as exc:
+            set_span_outcome(span, exc.outcome)
+            raise
+        except (ValueError, TypeError, KeyError, RecursionError) as exc:
+            set_span_outcome(span, OUTCOME_VALIDATION_ERROR)
+            # Library exceptions may interpolate raw input; return a fixed error.
+            raise InputRejected("Invalid JSON, schema, or inline image") from exc
+        except Exception:
+            set_span_outcome(span, OUTCOME_ERROR)
+            raise
+        set_span_outcome(span, OUTCOME_SUCCESS)
+        return payload, encoded
+
+
+def busy_response(has_images):
+    retry = calculate_retry_after(has_images)
+    return JSONResponse(
+        status_code=429,
+        content={"detail": f"Server busy; retry after {retry} seconds", "retry_after_seconds": retry, "queue_depth": batch_queue.qsize()},
+        headers={"Retry-After": str(retry)},
+    )
+
+
+async def disconnected(request):
+    # Uvicorn does not cancel the handler when a socket disappears. Consume the
+    # ASGI disconnect only after the entire bounded body has been read.
+    if not hasattr(request, "receive"):
+        await asyncio.Future()  # Direct-handler test fixtures have no transport.
+    while True:
+        if (await request.receive())["type"] == "http.disconnect":
+            return
+
+
+async def wait_for_item(item, request):
+    started = asyncio.create_task(item.started.wait())
+    gone = asyncio.create_task(disconnected(request))
+    try:
+        done, _ = await asyncio.wait(
+            [item.future, started, gone],
+            timeout=max(0, item.deadline - time.monotonic()), return_when=asyncio.FIRST_COMPLETED,
+        )
+        if gone in done:
+            raise ClientDisconnect()
+        if item.future in done:
+            return item.future.result()
+        if not item.started.is_set():
+            raise QueueExpired()
+        done, _ = await asyncio.wait([item.future, gone], return_when=asyncio.FIRST_COMPLETED)
+        if gone in done:
+            raise ClientDisconnect()
+        return item.future.result()
+    finally:
+        started.cancel()
+        gone.cancel()
+        batch_queue.discard(item)
+        if not item.future.done():
+            item.future.cancel()
+        elif not item.future.cancelled():
+            item.future.exception()  # Consume a raced failure after disconnect.
+        await asyncio.gather(started, gone, return_exceptions=True)
 
 
 @app.post("/v1/systemone")
 async def systemone(request: Request):
-    tracer = get_tracer()
-    server_span = get_current_span()
+    span = get_current_span()
+    began = time.monotonic()
+    status, outcome = 500, OUTCOME_ERROR
+    item = None
     try:
         body = await read_bounded_body(request.stream())
-    except RequestTooLarge as exc:
-        set_span_outcome(server_span, OUTCOME_VALIDATION_ERROR, str(exc))
-        raise HTTPException(413, str(exc)) from exc
-
-    # Fast CPU schema validation outside GPU lock
-    try:
+        payload, encoded = await run_in_threadpool(validate_and_encode, body)
+        if hasattr(request, "is_disconnected") and await request.is_disconnected():
+            raise ClientDisconnect()
+        has_images = bool(payload.get("images"))
+        if batch_queue.qsize() >= CLEF_MAX_QUEUE_DEPTH or estimate_wait_seconds(has_images) > CLEF_MAX_QUEUE_WAIT_SECONDS:
+            status, outcome = 429, OUTCOME_RATE_LIMITED
+            return busy_response(has_images)
+        ensure_worker_started()
+        item = QueueItem(encoded, payload, asyncio.get_running_loop().create_future(), has_images)
+        batch_queue.put_nowait(item)
         try:
-            payload = json.loads(body)
-        except Exception as json_err:
-            raise ValueError("Invalid JSON") from json_err
-
-        if not isinstance(payload, dict):
-            raise TypeError("Expected an object")
-        if payload.get("model") != MODEL_NAME:
-            raise ValueError(f"model must be {MODEL_NAME}")
-        if any(k in payload for k in ("videos", "media_kwargs")):
-            raise ValueError("Videos and media overrides are not supported")
-
-        validate_questions(payload.get("questions"))
-        payload = prepare_images(payload)
-    except (ValueError, TypeError, KeyError, AttributeError) as exc:
-        set_span_outcome(server_span, OUTCOME_VALIDATION_ERROR, str(exc))
-        raise HTTPException(400, str(exc)) from exc
-
-    # Fast CPU token encoding and context check outside GPU lock
-    has_images = bool(payload.get("images"))
-    with tracer.start_as_current_span("clef.encode") as encode_span:
-        encode_span.set_attribute("gen_ai.request.model", MODEL_NAME)
-        encode_span.set_attribute("clef.questions.count", len(payload["questions"]))
-        encode_span.set_attribute("clef.images.count", len(payload.get("images", [])))
-
-        if processor is not None and encode_record_fn is not None:
-            full = encode_record_fn(
-                processor.tokenizer, payload, max_length=1_000_000, processor=processor
-            )
-            input_tokens = len(full.input_ids)
-            encode_span.set_attribute("clef.input_tokens", input_tokens)
-            if input_tokens > MAX_CONTEXT_TOKENS:
-                set_span_outcome(encode_span, OUTCOME_CONTEXT_EXCEEDED, "context limit exceeded")
-                set_span_outcome(server_span, OUTCOME_CONTEXT_EXCEEDED, "context limit exceeded")
-                raise HTTPException(
-                    400,
-                    "Input exceeds the 2048-token context; shorten the state, schema, or images",
-                )
-        else:
-            full = SimpleNamespace(input_ids=[0] * 16)
-            encode_span.set_attribute("clef.input_tokens", 16)
-
-    # Stage A: Fast Admission Control (Pre-Queue Gate)
-    queue_depth = batch_queue.qsize()
-    estimated_wait = estimate_wait_seconds(has_images=has_images)
-    retry_after = calculate_retry_after(has_images=has_images)
-
-    if queue_depth >= CLEF_MAX_QUEUE_DEPTH or estimated_wait > CLEF_MAX_QUEUE_WAIT_SECONDS:
-        set_span_outcome(server_span, OUTCOME_RATE_LIMITED, "server busy")
-        return JSONResponse(
-            status_code=429,
-            content={
-                "detail": f"Server busy; retry after {retry_after} seconds",
-                "retry_after_seconds": retry_after,
-                "queue_depth": queue_depth,
-            },
-            headers={"Retry-After": str(retry_after)},
-        )
-
-    # Stage B: Enqueue & Wait Deadline / Cancellation
-    ensure_worker_started()
-    loop = asyncio.get_running_loop()
-    future = loop.create_future()
-    item = QueueItem(record=full, payload=payload, future=future, has_images=has_images)
-    batch_queue.put_nowait(item)
-
-    try:
-        result = await asyncio.wait_for(future, timeout=CLEF_MAX_QUEUE_WAIT_SECONDS)
-        if server_span and hasattr(item, "queue_wait_ms"):
-            server_span.set_attribute("clef.queue_wait_ms", item.queue_wait_ms)
-        set_span_outcome(server_span, OUTCOME_SUCCESS)
-        logging.getLogger("clef").info("Systemone request finished: outcome=%s", OUTCOME_SUCCESS)
+            result = await wait_for_item(item, request)
+        except QueueExpired:
+            status, outcome = 429, OUTCOME_RATE_LIMITED
+            return busy_response(has_images)
+        status, outcome = 200, OUTCOME_SUCCESS
         return result
-    except TimeoutError:
-        item.cancelled = True
-        set_span_outcome(server_span, OUTCOME_RATE_LIMITED, "queue deadline expired")
-        retry_after = calculate_retry_after(has_images=has_images)
-        q_now = batch_queue.qsize()
-        return JSONResponse(
-            status_code=429,
-            content={
-                "detail": f"Server busy; retry after {retry_after} seconds",
-                "retry_after_seconds": retry_after,
-                "queue_depth": q_now,
-            },
-            headers={"Retry-After": str(retry_after)},
-        )
+    except RequestTooLarge as exc:
+        status, outcome = 413, OUTCOME_VALIDATION_ERROR
+        raise HTTPException(status, "Request exceeds the 64 KiB limit") from exc
+    except InputRejected as exc:
+        status, outcome = 400, exc.outcome
+        raise HTTPException(status, str(exc)) from exc
+    except ClientDisconnect:
+        status, outcome = 499, OUTCOME_CANCELLED
+        return JSONResponse({"detail": "Caller disconnected"}, status_code=status)
     except asyncio.CancelledError:
-        item.cancelled = True
-        set_span_outcome(server_span, OUTCOME_RATE_LIMITED, "caller disconnected")
-        raise
-    except HTTPException:
+        status, outcome = 499, OUTCOME_CANCELLED
         raise
     except Exception as exc:
-        import traceback
-        traceback.print_exc()
-        set_span_outcome(server_span, OUTCOME_ERROR, str(exc))
         raise HTTPException(500, "Internal server error") from exc
+    finally:
+        if span is not None:
+            span.set_attribute("gen_ai.request.model", MODEL_NAME)
+            if item is not None:
+                span.set_attribute("clef.queue_wait_ms", item.queue_wait_ms)
+            set_span_outcome(span, outcome)
+        record_request(MODEL_NAME, outcome, status, time.monotonic() - began)
+
+
+# Instrument before Starlette constructs its middleware stack for lifespan.
+configure_logging()
+init_telemetry(app)
 
 
 if __name__ == "__main__":
@@ -453,11 +479,5 @@ if __name__ == "__main__":
                 os._exit(0)
             super().handle_exit(sig, frame)
 
-    StartupServer(
-        uvicorn.Config(
-            app,
-            host="0.0.0.0",
-            port=int(os.environ.get("PORT", "8080")),
-            timeout_keep_alive=75,
-        )
-    ).run()
+    StartupServer(uvicorn.Config(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")),
+                                timeout_keep_alive=75, access_log=False)).run()

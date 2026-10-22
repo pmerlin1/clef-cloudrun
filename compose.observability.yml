@@ -1,12 +1,10 @@
-name: clef-observability
-
 services:
   jaeger:
     image: jaegertracing/jaeger:2.20.0
     environment:
       JAEGER_LISTEN_HOST: "0.0.0.0"
     ports:
-      - "127.0.0.1:16686:16686"
+      - "127.0.0.1::16686"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:13133/status"]
       interval: 2s
@@ -19,21 +17,37 @@ services:
     volumes:
       - ./otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
     ports:
-      - "127.0.0.1:4318:4318"
-      - "127.0.0.1:8889:8889"
+      - "127.0.0.1::8889"
+      - "127.0.0.1::8888"
     depends_on:
       jaeger:
         condition: service_healthy
 
   app:
-    image: clef-mock:local
+    image: ${CLEF_TEST_IMAGE:-clef-review:local}
     environment:
-      - CLEF_MOCK_MODEL=1
-      - MODEL=clef
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - OTEL_BSP_SCHEDULE_DELAY=100
-      - LOG_LEVEL=INFO
+      CLEF_MOCK_MODEL: "1"
+      CLEF_MOCK_BATCH_SECONDS: "0.25"
+      CLEF_MAX_QUEUE_DEPTH: "8"
+      MODEL: clef
+      ENVIRONMENT: test
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_SAMPLER: parentbased_always_on
+      OTEL_BSP_SCHEDULE_DELAY: "100"
+      OTEL_METRIC_EXPORT_INTERVAL: "200"
+      LOG_LEVEL: INFO
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1::8080"
     depends_on:
       - otel-collector
+
+  uninstrumented:
+    image: ${CLEF_TEST_IMAGE:-clef-review:local}
+    environment:
+      CLEF_MOCK_MODEL: "1"
+      OTEL_SDK_DISABLED: "true"
+      MODEL: clef
+      LOG_LEVEL: INFO
+    ports:
+      - "127.0.0.1::8080"

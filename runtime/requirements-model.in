@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cu128
+-c requirements-api.lock
+torch==2.11.0+cu128
+torchvision==0.26.0+cu128
+transformers==5.10.2
+accelerate==1.15.0
+safetensors==0.7.0
+flash-linear-attention==0.5.2
+fla-core==0.5.2
+einops==0.8.2
+setuptools==80.9.0

@@ -2,6 +2,7 @@ locals {
   required_apis = toset([
     "artifactregistry.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "cloudtrace.googleapis.com",
     "compute.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
@@ -62,6 +63,13 @@ resource "google_storage_bucket_iam_member" "runtime_read" {
   bucket = google_storage_bucket.weights.name
   role   = "roles/storage.objectViewer"
   member = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_project_iam_member" "runtime_telemetry" {
+  for_each = toset(["roles/cloudtrace.agent", "roles/monitoring.metricWriter"])
+  project  = var.project_id
+  role     = each.key
+  member   = "serviceAccount:${google_service_account.runtime.email}"
 }
 
 # Direct VPC + Private Google Access: no always-on connector or Cloud NAT.

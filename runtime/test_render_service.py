@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from copy import deepcopy
@@ -101,6 +102,20 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(spec["serviceAccountName"], "my-clef-runtime@example-project.iam.gserviceaccount.com")
         env = {e["name"]: e["value"] for e in spec["containers"][0]["env"]}
         self.assertEqual(env["MODEL_BUCKET"], "example-project-my-clef-weights")
+
+    def test_dedicated_project_shares_resources_for_both_models(self):
+        shared = {"RESOURCE_PREFIX": "clef", "WEIGHTS_BUCKET": "example-project-weights",
+                  "VPC_NETWORK": "clef-vpc", "VPC_SUBNET": "clef-subnet"}
+        for name in ("clef", "clef-flash"):
+            with self.subTest(name=name), patch.dict(os.environ, {**shared, "MODEL": name, "SERVICE": ""}):
+                desired = service("us-central1-docker.pkg.dev/example-project/clef/api@sha256:" + "a" * 64)
+                self.assertEqual(desired["metadata"]["name"], name)
+                template = desired["spec"]["template"]
+                self.assertEqual(json.loads(template["metadata"]["annotations"]["run.googleapis.com/network-interfaces"]),
+                                 [{"network": "clef-vpc", "subnetwork": "clef-subnet"}])
+                self.assertEqual(template["spec"]["serviceAccountName"], "clef-runtime@example-project.iam.gserviceaccount.com")
+                env = {e["name"]: e["value"] for e in template["spec"]["containers"][0]["env"]}
+                self.assertEqual(env["MODEL_BUCKET"], "example-project-weights")
 
 
 if __name__ == "__main__":

@@ -8,24 +8,45 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: hashicorp/setup-terraform@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: hashicorp/setup-terraform@v4.0.1
         with:
           terraform_wrapper: false
+      - name: Install declared CPU dependencies in an isolated environment
+        run: |
+          python3 -m venv /tmp/clef-checks
+          /tmp/clef-checks/bin/pip install --require-hashes -r runtime/requirements-api.lock -r runtime/requirements-checks.lock
+          echo '/tmp/clef-checks/bin' >> "$GITHUB_PATH"
       - name: Python checks
         env:
           PROJECT: example-clef-project
+          OTEL_SDK_DISABLED: 'true'
         run: |
-          python3 -m pip install --disable-pip-version-check pillow==13.0.0
-          python3 -m compileall -q runtime scripts benchmarks
-          python3 -m unittest discover -s runtime -p 'test_*.py'
-          python3 -m unittest discover -s benchmarks -p 'test_*.py'
-          python3 -m pip install --disable-pip-version-check fastapi==0.135.1 uvicorn==0.42.0 google-cloud-storage==3.16.0
-          python3 scripts/check_adapter.py
+          python scripts/check_local.py
       - name: Terraform checks (no backend or cloud credentials)
         run: |
           terraform -chdir=infra fmt -check
           terraform -chdir=infra init -backend=false -input=false
           terraform -chdir=infra validate
+  container:
+    # Organization registry credentials are available only in the private repo.
+    if: github.repository == 'TIS-Cloud-Team/clef-cloudrun' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: registry.os.wiz.io
+          username: ${{ secrets.WIZ_REGISTRY_USERNAME }}
+          password: ${{ secrets.WIZ_REGISTRY_PASSWORD }}
+      - name: Build and check the WizOS CPU image
+        run: |
+          docker build -f Dockerfile.mock --target checks -t clef-checks:ci .
+          docker run --rm --network none clef-checks:ci
+          docker build -f Dockerfile.mock --target upstream-check -t clef-upstream:ci .
+          docker build -f Dockerfile.mock --target runtime --build-arg BUILD_ID=ci-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT --build-arg SOURCE_REVISION=$GITHUB_SHA -t clef-review:local .
+      - name: Verify backend telemetry, metrics, redaction and negative controls
+        run: python3 scripts/verify_telemetry.py

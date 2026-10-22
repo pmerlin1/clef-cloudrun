@@ -28,24 +28,29 @@ jobs:
     env:
       PROJECT: ${{ vars.GCP_PROJECT_ID }}
       REGION: ${{ vars.GCP_REGION || 'us-central1' }}
-      SERVICE: ${{ vars.CLEF_SERVICE || 'clef' }}
+      SERVICE: ${{ vars.CLEF_RESOURCE_PREFIX && (inputs.model || vars.CLEF_MODEL || 'clef') || vars.CLEF_SERVICE || inputs.model || vars.CLEF_MODEL || 'clef' }}
       MODEL: ${{ inputs.model || vars.CLEF_MODEL || 'clef' }}
       GPU_PROFILE: ${{ inputs.gpu_profile || vars.CLEF_GPU_PROFILE || 'model-default' }}
+      RESOURCE_PREFIX: ${{ vars.CLEF_RESOURCE_PREFIX }}
+      WEIGHTS_BUCKET: ${{ vars.CLEF_WEIGHTS_BUCKET }}
+      VPC_NETWORK: ${{ vars.CLEF_VPC_NETWORK }}
+      VPC_SUBNET: ${{ vars.CLEF_VPC_SUBNET }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Validate configuration and run CPU checks
         run: |
           : "${PROJECT:?Set GCP_PROJECT_ID from the Terraform outputs}"
           python3 -c "import sys; sys.path.insert(0, 'runtime'); from settings import settings; settings()"
-          python3 -m pip install --disable-pip-version-check pillow==13.0.0
-          python3 -m unittest discover -s runtime -p 'test_*.py'
-          echo "IMAGE=$REGION-docker.pkg.dev/$PROJECT/$SERVICE/api" >> "$GITHUB_ENV"
-      - uses: google-github-actions/auth@v3
+          python3 -m venv /tmp/clef-checks
+          /tmp/clef-checks/bin/pip install --require-hashes -r runtime/requirements-api.lock -r runtime/requirements-checks.lock
+          OTEL_SDK_DISABLED=true /tmp/clef-checks/bin/python scripts/check_local.py
+          echo "IMAGE=$REGION-docker.pkg.dev/$PROJECT/${RESOURCE_PREFIX:-$SERVICE}/api" >> "$GITHUB_ENV"
+      - uses: google-github-actions/auth@v3.0.0
         with:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.DEPLOY_SERVICE_ACCOUNT }}
           project_id: ${{ env.PROJECT }}
-      - uses: google-github-actions/setup-gcloud@v3
+      - uses: google-github-actions/setup-gcloud@v3.0.1
       - name: Resolve existing immutable image before building
         id: reuse
         env:
@@ -69,6 +74,12 @@ jobs:
           df -h /
       - name: Verify and upload pinned model (no GPU)
         run: python3 runtime/upload_weights.py
+      - uses: docker/login-action@v4.6.0
+        if: steps.reuse.outputs.digest == ''
+        with:
+          registry: registry.os.wiz.io
+          username: ${{ secrets.WIZ_REGISTRY_USERNAME }}
+          password: ${{ secrets.WIZ_REGISTRY_PASSWORD }}
       - name: Build and push container on the GitHub runner
         id: image
         env:
@@ -81,7 +92,7 @@ jobs:
             docker build -f runtime/Dockerfile.kernels --output=type=local,dest=/tmp/clef-kernels runtime
             # Drop compiler layers before the final image on this disposable runner.
             docker builder prune --all --force
-            docker build --build-context compiled_wheels=/tmp/clef-kernels -t "$IMAGE:$GITHUB_SHA" runtime
+            docker build --build-context compiled_wheels=/tmp/clef-kernels --build-arg BUILD_ID=ci-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT --build-arg SOURCE_REVISION=$GITHUB_SHA -t "$IMAGE:$GITHUB_SHA" runtime
             docker push "$IMAGE:$GITHUB_SHA"
             DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_SHA")
           fi
@@ -97,7 +108,7 @@ jobs:
       - name: Deploy with Cloud Run action
         if: steps.release.outputs.needed == 'true'
         id: deploy
-        uses: google-github-actions/deploy-cloudrun@v3
+        uses: google-github-actions/deploy-cloudrun@v3.0.1
         with:
           project_id: ${{ env.PROJECT }}
           region: ${{ env.REGION }}

@@ -1,7 +1,9 @@
 """Pinned local weights with separately measured transfer and SHA-256 phases."""
+import contextvars
 import hashlib
 import json
 import os
+import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -10,7 +12,7 @@ from google.cloud import storage
 from google.cloud.storage import transfer_manager
 from models import model
 from requests.adapters import HTTPAdapter
-from telemetry import get_tracer
+from telemetry import OUTCOME_ERROR, OUTCOME_SUCCESS, get_tracer, set_span_outcome
 
 FILE_WORKERS = 4
 CANDIDATES = (8, 12, 16, 20)
@@ -60,7 +62,8 @@ def download_set(model_bucket, entries, destination, total_workers):
         return {"name": entry["name"], "transfer_seconds": round(time.monotonic() - began, 3)}
 
     with ThreadPoolExecutor(max_workers=FILE_WORKERS) as pool:
-        files = list(pool.map(download, entries))
+        futures = [pool.submit(contextvars.copy_context().run, download, entry) for entry in entries]
+        files = [future.result() for future in futures]
     transfer_seconds = time.monotonic() - started
     checksum_started = time.monotonic()
 
@@ -92,13 +95,17 @@ def download_set(model_bucket, entries, destination, total_workers):
 
 def preload():
     tracer = get_tracer()
-    with tracer.start_as_current_span("clef.preload") as span:
-        destination = Path("/tmp/clef-model")
-        destination.mkdir(exist_ok=True)
+    with tracer.start_as_current_span("clef.preload", record_exception=False, set_status_on_exception=False) as span:
+        destination = Path(tempfile.mkdtemp(prefix="clef-model-"))
         model_bucket = bucket()
         manifest_entries = manifest()
         span.set_attribute("gen_ai.request.model", os.environ.get("MODEL", "clef"))
         span.set_attribute("clef.preload.files_count", len(manifest_entries))
-        res = download_set(model_bucket, manifest_entries, destination, worker_budget())
+        try:
+            res = download_set(model_bucket, manifest_entries, destination, worker_budget())
+        except Exception:
+            set_span_outcome(span, OUTCOME_ERROR)
+            raise
         span.set_attribute("clef.preload.bytes", res.get("bytes", 0))
+        set_span_outcome(span, OUTCOME_SUCCESS)
         return str(destination)
